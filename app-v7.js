@@ -14,10 +14,10 @@
   function money(value) { return new Intl.NumberFormat('en-AU', {style:'currency', currency:'AUD'}).format(Number(value) || 0); }
   function read(key, fallback) { try { var raw=localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch(e) { return fallback; } }
   function save() { try { localStorage.setItem(QUOTES_KEY, JSON.stringify(quotes)); localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch(e) {} }
-  function escapeHtml(value) { return String(value == null ? '' : value).replace(/[&<>"']/g,function(ch){var map={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'};return map[ch];}); }
-  function maxQuoteSequence() { var max=0; for(var i=0;i<quotes.length;i++){var m=String(quotes[i].number||'').match(/^Q-(\d+)$/);if(m)max=Math.max(max,Number(m[1])||0);} return max; }
-  function ensureQuoteSequence() { var stored=Number(settings.quoteSequence)||0; var existing=maxQuoteSequence(); if(existing>stored)settings.quoteSequence=existing; }
-  function nextQuoteNumber() { ensureQuoteSequence(); settings.quoteSequence=(Number(settings.quoteSequence)||0)+1; save(); return 'Q-'+String(settings.quoteSequence).padStart(6,'0'); }
+  function escapeHtml(value) { return String(value == null ? '' : value).replace(/[&<>\"']/g,function(ch){var map={'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'};return map[ch];}); }
+  function maxQuoteSequence() { var max=0; for(var i=0;i<quotes.length;i++){var m=String(quotes[i].number||'').match(/^Q-(\d{3})$/);if(m)max=Math.max(max,Number(m[1])||0);} return max; }
+  function ensureQuoteSequence() { var stored=Number(settings.quoteSequence)||0; var existing=maxQuoteSequence(); if(stored>999)stored=0; if(existing>stored)stored=existing; settings.quoteSequence=stored; }
+  function nextQuoteNumber() { ensureQuoteSequence(); settings.quoteSequence=(Number(settings.quoteSequence)||0)+1; save(); return 'Q-'+String(settings.quoteSequence).padStart(3,'0'); }
 
   function show(id) {
     var screens=document.querySelectorAll('.screen'), navs=document.querySelectorAll('.nav'), i;
@@ -124,7 +124,7 @@
 
   function start(){
     quotes=read(QUOTES_KEY,[]); settings=Object.assign({},settings,read(SETTINGS_KEY,{})); ensureQuoteSequence(); save(); wire(); resetForm(); renderDashboard();
-    if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js?v=8').catch(function(){});
+    if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js?v=9').catch(function(){});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();

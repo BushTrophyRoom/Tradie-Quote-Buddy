@@ -7,8 +7,13 @@
 <title>Quote Response • Tradie Quote Buddy</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f3f4f6;color:#171717;font-family:Arial,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}.card{width:100%;max-width:560px;background:#fff;border-radius:18px;box-shadow:0 4px 22px #0002;padding:28px}.brand{display:flex;align-items:center;gap:12px;margin-bottom:24px}.brand-mark{width:48px;height:48px;border-radius:12px;background:#171717;color:#ffb000;display:grid;place-items:center;font-size:24px}.brand strong{display:block;font-size:18px}.brand span{display:block;font-size:12px;color:#777;margin-top:3px}.eyebrow{font-size:11px;letter-spacing:2px;color:#b66e00;font-weight:800}.title{font-size:28px;margin:5px 0 8px}.intro{color:#555;line-height:1.5}.summary{margin:22px 0;padding:16px;border:1px solid #ddd;border-radius:12px;background:#fafafa}.summary div{display:flex;justify-content:space-between;gap:20px;padding:6px 0}.summary div span:first-child{color:#666}.summary div span:last-child{font-weight:700;text-align:right}.status{margin-top:20px;padding:16px;border-radius:12px;font-weight:700;line-height:1.5}.working{background:#f3f4f6;color:#444}.success{background:#eaf7ee;color:#176b36}.error{background:#fff0f0;color:#a21b1b}.small{font-size:12px;color:#777;margin-top:18px;line-height:1.5}.fallback{display:inline-block;margin-top:12px;color:#8b4f00;font-weight:700}.hidden{display:none}
+/* Hidden PDF layout used to create the attachment. */
+#pdfDocument{position:fixed;left:-10000px;top:0;width:794px;background:#fff;color:#171717;padding:42px;font-family:Arial,sans-serif;font-size:13px;line-height:1.45}
+#pdfDocument .pdf-head{display:flex;justify-content:space-between;gap:30px;border-bottom:2px solid #171717;padding-bottom:18px;margin-bottom:22px}
+#pdfDocument h1{margin:0 0 4px;font-size:25px}#pdfDocument h2{margin:0 0 5px;font-size:22px}#pdfDocument .pdf-meta{text-align:right}#pdfDocument .pdf-label{font-size:10px;letter-spacing:2px;color:#8b4f00;font-weight:800}#pdfDocument .customer{margin-bottom:18px}#pdfDocument .job{margin:18px 0}#pdfDocument table{width:100%;border-collapse:collapse;margin-top:14px}#pdfDocument th,#pdfDocument td{padding:8px;border-bottom:1px solid #ddd;text-align:left}#pdfDocument th:nth-child(n+2),#pdfDocument td:nth-child(n+2){text-align:right}#pdfDocument .totals{width:280px;margin:18px 0 0 auto}#pdfDocument .totals div{display:flex;justify-content:space-between;padding:5px 0}#pdfDocument .totals .grand{font-size:18px;font-weight:800;border-top:2px solid #171717;margin-top:5px;padding-top:10px}#pdfDocument .terms{margin-top:25px;padding-top:14px;border-top:1px solid #ddd;font-size:11px;color:#555}#pdfDocument .thanks{margin-top:28px;color:#666;font-size:11px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 <main class="card">
@@ -20,6 +25,7 @@
   <div class="status working" id="status">Sending response…</div>
   <p class="small" id="small">You are not being charged or asked for payment. This page only records your quote decision.</p>
 </main>
+<div id="pdfDocument" aria-hidden="true"></div>
 <script>
 (function(){
   'use strict';
@@ -37,8 +43,38 @@
     }catch(e){return null;}
   }
   function esc(value){return String(value==null?'':value).replace(/[&<>\"']/g,function(ch){var m={'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'};return m[ch];});}
-  function setStatus(type,title,text){
-    var el=$('status');el.className='status '+type;el.innerHTML='<b>'+esc(title)+'</b><br>'+esc(text);
+  function setStatus(type,title,text){var el=$('status');el.className='status '+type;el.innerHTML='<b>'+esc(title)+'</b><br>'+esc(text);}
+  function money(value){
+    var n=Number(String(value==null?'':value).replace(/[^0-9.-]/g,''));
+    if(!isFinite(n))return String(value||'');
+    return new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD'}).format(n);
+  }
+  function formatMultiline(value){return esc(value||'').replace(/\r?\n/g,'<br>');}
+  function buildPdfHtml(data){
+    var items=[];
+    if(data.materials_details){
+      String(data.materials_details).split(/\r?\n/).forEach(function(line){
+        if(String(line).trim())items.push({description:String(line),qty:'',unit:'',amount:''});
+      });
+    }
+    if(!items.length && data.item_details){
+      String(data.item_details).split(/\r?\n/).forEach(function(line){
+        if(String(line).trim())items.push({description:String(line),qty:'',unit:'',amount:''});
+      });
+    }
+    var rows='';
+    for(var i=0;i<items.length;i++)rows+='<tr><td>'+esc(items[i].description)+'</td><td>'+esc(items[i].qty)+'</td><td>'+esc(items[i].unit)+'</td><td>'+esc(items[i].amount)+'</td></tr>';
+    if(data.labour_details)rows+='<tr><td>'+esc(data.labour_details)+'</td><td></td><td></td><td></td></tr>';
+    if(!rows)rows='<tr><td colspan="4">No item breakdown supplied.</td></tr>';
+    var discount=data.discount&&data.discount!=='$0.00'&&data.discount!=='0' ? '<div><span>Discount</span><span>'+esc(data.discount)+'</span></div>':'';
+    var decision=String(data.decision||data.quote_status||'').toLowerCase()==='accepted'?'Accepted':'Declined';
+    return '<div class="pdf-head"><div><div class="pdf-label">TRADIE QUOTE BUDDY</div><h1>'+esc(data.business_name||'Tradie Quote Buddy')+'</h1><div>'+formatMultiline(data.business_address)+'</div><div>'+esc(data.business_phone||'')+'</div><div>'+esc(data.business_email||'')+'</div></div><div class="pdf-meta"><div class="pdf-label">QUOTE</div><h2>'+esc(data.quote_number)+'</h2><div>'+esc(data.responded_at||'')+'</div><div><b>'+decision+'</b></div></div></div><div class="customer"><b>Customer</b><div>'+esc(data.customer_name)+'</div><div>'+esc(data.customer_phone)+'</div><div>'+esc(data.customer_email)+'</div><div>'+formatMultiline(data.customer_address)+'</div></div><div class="job"><b>Job description</b><br>'+formatMultiline(data.job_description)+'</div><table><thead><tr><th>Description</th><th>Qty</th><th>Unit</th><th>Amount</th></tr></thead><tbody>'+rows+'</tbody></table><div class="totals"><div><span>Subtotal</span><span>'+esc(data.subtotal||'')+'</span></div>'+discount+'<div><span>GST</span><span>'+esc(data.gst||'')+'</span></div><div class="grand"><span>Total</span><span>'+esc(data.total||data.quote_total||'')+'</span></div></div><div class="terms"><b>Quote status:</b> '+decision+'<br><b>Response recorded:</b> '+esc(data.responded_at||'')+'</div><div class="thanks">Thank you for the opportunity to quote on your job.</div>';
+  }
+  function makePdf(data){
+    var el=$('pdfDocument');
+    el.innerHTML=buildPdfHtml(data);
+    if(!window.html2pdf) return Promise.reject(new Error('PDF library unavailable'));
+    return html2pdf().set({margin:[0.35,0.35,0.35,0.35],image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff'},jsPDF:{unit:'in',format:'a4',orientation:'portrait'}}).from(el).outputPdf('datauristring');
   }
 
   var params=new URLSearchParams(window.location.search);
@@ -64,33 +100,37 @@
 
   try{
     emailjs.init({publicKey:EMAILJS_PUBLIC_KEY,blockHeadless:true,limitRate:{id:'quote-response',throttle:1000}});
-    emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{
-      quote_number:data.quote_number,
-      business_name:data.business_name,
-      business_email:data.business_email,
-      customer_name:data.customer_name,
-      customer_phone:data.customer_phone,
-      customer_email:data.customer_email,
-      customer_address:data.customer_address,
-      job_description:data.job_description,
-      item_details:data.item_details,
-      materials_details:data.materials_details,
-      labour_details:data.labour_details,
-      subtotal:data.subtotal,
-      discount:data.discount,
-      gst:data.gst,
-      total:data.total,
-      quote_total:data.quote_total || data.total,
-      decision:data.decision,
-      quote_status:data.quote_status || data.decision,
-      response_token:data.response_token,
-      responded_at:data.responded_at
+    setStatus('working','Preparing quote PDF','Generating the full quote PDF before sending the response.');
+    makePdf(data).then(function(pdfDataUri){
+      return emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{
+        quote_number:data.quote_number,
+        business_name:data.business_name,
+        business_email:data.business_email,
+        customer_name:data.customer_name,
+        customer_phone:data.customer_phone,
+        customer_email:data.customer_email,
+        customer_address:data.customer_address,
+        job_description:data.job_description,
+        item_details:data.item_details,
+        materials_details:data.materials_details,
+        labour_details:data.labour_details,
+        subtotal:data.subtotal,
+        discount:data.discount,
+        gst:data.gst,
+        total:data.total,
+        quote_total:data.quote_total || data.total,
+        decision:data.decision,
+        quote_status:data.quote_status || data.decision,
+        response_token:data.response_token,
+        responded_at:data.responded_at,
+        quote_pdf:pdfDataUri
+      });
     }).then(function(){
-      setStatus('success',accepted?'Acceptance sent':'Decline sent',accepted?'The business has been notified that you accepted quote '+data.quote_number+'.':'The business has been notified that you declined quote '+data.quote_number+'.');
+      setStatus('success',accepted?'Acceptance sent':'Decline sent',accepted?'The business has been notified that you accepted quote '+data.quote_number+'. The full quote PDF was attached.':'The business has been notified that you declined quote '+data.quote_number+'. The full quote PDF was attached.');
       $('small').textContent='Your response has been recorded. You can now close this page.';
     }).catch(function(error){
       console.error(error);
-      setStatus('error','We could not send the response automatically','Please contact the business directly and tell them you '+(accepted?'accept':'decline')+' quote '+data.quote_number+'.');
+      setStatus('error','We could not send the response automatically','The PDF or email could not be created. Please contact the business directly and tell them you '+(accepted?'accept':'decline')+' quote '+data.quote_number+'.');
       if(data.business_email){
         var subject=encodeURIComponent('Quote '+data.quote_number+' '+data.decision);
         var body=encodeURIComponent('Quote '+data.quote_number+'\nCustomer: '+data.customer_name+'\nDecision: '+data.decision+'\nTotal: '+(data.total || data.quote_total)+'\nJob: '+(data.job_description || '')+'\n\nItems:\n'+(data.item_details || '')+'\n\nSubtotal: '+(data.subtotal || '')+'\nDiscount: '+(data.discount || '')+'\nGST: '+(data.gst || '')+'\nTotal: '+(data.total || data.quote_total));

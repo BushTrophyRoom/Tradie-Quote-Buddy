@@ -1,8 +1,8 @@
 (function () {
   'use strict';
 
-  var STYLE_ID = 'customer-response-styles-v2';
-  var ACTION_ID = 'customer-response-actions-v2';
+  var STYLE_ID = 'customer-response-styles-v3';
+  var ACTION_ID = 'customer-response-actions-v3';
 
   function $(id) { return document.getElementById(id); }
 
@@ -37,6 +37,13 @@
     return result;
   }
 
+  function getTextAfterLabel(element, label) {
+    if (!element) return '';
+    var text = (element.innerText || element.textContent || '').trim();
+    var re = new RegExp('^\\s*' + label + '\\s*', 'i');
+    return text.replace(re, '').trim();
+  }
+
   function buildResponseUrl(decision) {
     var preview = $('quotePreview');
     if (!preview) return '#';
@@ -49,11 +56,11 @@
     var quoteNumber = numberEl ? numberEl.textContent.trim() : '';
     var businessName = businessEl ? businessEl.textContent.trim() : 'Tradie Quote Buddy';
     var total = totalEl ? totalEl.textContent.trim() : '';
-    var jobDescription = jobEl ? jobEl.textContent.replace(/^Job description\s*/i, '').trim() : '';
+    var jobDescription = getTextAfterLabel(jobEl, 'Job description');
     var businessEmail = '';
     var itemDetails = '';
-    var materialsTotal = '';
-    var labourTotal = '';
+    var materialsDetails = '';
+    var labourDetails = '';
     var subtotal = '';
     var discount = '';
     var gst = '';
@@ -67,14 +74,31 @@
     var table = preview.querySelector('table tbody');
     if (table) {
       var rows = table.querySelectorAll('tr');
-      var details = [];
+      var allDetails = [];
+      var materialLines = [];
+      var labourLines = [];
+
       for (var i = 0; i < rows.length; i++) {
         var cells = rows[i].querySelectorAll('td');
+        if (cells.length < 2) continue;
+
+        var description = cells[0].textContent.trim();
+        var line = '';
+
         if (cells.length >= 4) {
-          details.push(cells[0].textContent.trim() + ' | Qty: ' + cells[1].textContent.trim() + ' | Unit: ' + cells[2].textContent.trim() + ' | Amount: ' + cells[3].textContent.trim());
+          line = description + ' | Qty: ' + cells[1].textContent.trim() + ' | Unit: ' + cells[2].textContent.trim() + ' | Amount: ' + cells[3].textContent.trim();
+        } else {
+          line = description + ' | Amount: ' + cells[cells.length - 1].textContent.trim();
         }
+
+        if (/^Labour(?:\s|$)/i.test(description)) labourLines.push(line);
+        else materialLines.push(line);
+        allDetails.push(line);
       }
-      itemDetails = details.join('\n');
+
+      itemDetails = allDetails.join('\n');
+      materialsDetails = materialLines.join('\n');
+      labourDetails = labourLines.join('\n');
     }
 
     var totalRows = preview.querySelectorAll('.paper-total > div');
@@ -87,9 +111,6 @@
       else if (label === 'discount') discount = value;
       else if (label === 'gst') gst = value;
     }
-    labourTotal = (itemDetails.match(/Labour\s*\|[^\n]*Amount:\s*([^\n]+)/i) || [,''])[1];
-    var materialLines = itemDetails.split('\n').filter(function(line){ return !/^Labour\s*\|/i.test(line); });
-    materialsTotal = materialLines.length ? materialLines.join('\n') : '';
 
     var token = quoteNumber + '|' + customer.name + '|' + decision + '|' + total;
     var payload = {
@@ -102,8 +123,8 @@
       customer_address: customer.address,
       job_description: jobDescription,
       item_details: itemDetails,
-      materials_details: materialsTotal,
-      labour_details: labourTotal,
+      materials_details: materialsDetails,
+      labour_details: labourDetails,
       subtotal: subtotal,
       discount: discount,
       gst: gst,

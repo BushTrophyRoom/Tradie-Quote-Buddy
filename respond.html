@@ -73,6 +73,12 @@
       customer_email:data.customer_email,
       customer_address:data.customer_address,
       job_description:data.job_description,
+      item_details:data.item_details,
+      materials_details:data.materials_details,
+      labour_details:data.labour_details,
+      subtotal:data.subtotal,
+      discount:data.discount,
+      gst:data.gst,
       total:data.total,
       quote_total:data.quote_total || data.total,
       decision:data.decision,
@@ -87,7 +93,7 @@
       setStatus('error','We could not send the response automatically','Please contact the business directly and tell them you '+(accepted?'accept':'decline')+' quote '+data.quote_number+'.');
       if(data.business_email){
         var subject=encodeURIComponent('Quote '+data.quote_number+' '+data.decision);
-        var body=encodeURIComponent('Quote '+data.quote_number+'\nCustomer: '+data.customer_name+'\nDecision: '+data.decision+'\nTotal: '+(data.total || data.quote_total)+'\nJob: '+(data.job_description || ''));
+        var body=encodeURIComponent('Quote '+data.quote_number+'\nCustomer: '+data.customer_name+'\nDecision: '+data.decision+'\nTotal: '+(data.total || data.quote_total)+'\nJob: '+(data.job_description || '')+'\n\nItems:\n'+(data.item_details || '')+'\n\nSubtotal: '+(data.subtotal || '')+'\nDiscount: '+(data.discount || '')+'\nGST: '+(data.gst || '')+'\nTotal: '+(data.total || data.quote_total));
         $('small').innerHTML='If needed, you can send the response manually. <a class="fallback" href="mailto:'+encodeURIComponent(data.business_email)+'?subject='+subject+'&body='+body+'">Email the business</a>';
       }
     });

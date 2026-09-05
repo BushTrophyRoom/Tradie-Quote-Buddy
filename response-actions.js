@@ -45,9 +45,11 @@
     var businessEl = preview.querySelector('.paper-head h1');
     var customer = extractCustomer(preview.querySelector('.customer-block'));
     var totalEl = preview.querySelector('.paper-total .grand span:last-child');
+    var jobEl = preview.querySelector('.job');
     var quoteNumber = numberEl ? numberEl.textContent.trim() : '';
     var businessName = businessEl ? businessEl.textContent.trim() : 'Tradie Quote Buddy';
     var total = totalEl ? totalEl.textContent.trim() : '';
+    var jobDescription = jobEl ? jobEl.textContent.replace(/^Job description\s*/i, '').trim() : '';
     var businessEmail = '';
 
     try {
@@ -65,8 +67,11 @@
       customer_phone: customer.phone,
       customer_email: customer.email,
       customer_address: customer.address,
+      job_description: jobDescription,
       total: total,
+      quote_total: total,
       decision: decision,
+      quote_status: decision,
       response_token: token,
       responded_at: new Date().toLocaleString('en-AU')
     };

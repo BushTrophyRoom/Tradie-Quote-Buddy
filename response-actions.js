@@ -51,12 +51,45 @@
     var total = totalEl ? totalEl.textContent.trim() : '';
     var jobDescription = jobEl ? jobEl.textContent.replace(/^Job description\s*/i, '').trim() : '';
     var businessEmail = '';
+    var itemDetails = '';
+    var materialsTotal = '';
+    var labourTotal = '';
+    var subtotal = '';
+    var discount = '';
+    var gst = '';
 
     try {
       var raw = localStorage.getItem('tqb_settings_v6');
       var settings = raw ? JSON.parse(raw) : {};
       businessEmail = String(settings.businessEmail || '').trim();
     } catch (e) {}
+
+    var table = preview.querySelector('table tbody');
+    if (table) {
+      var rows = table.querySelectorAll('tr');
+      var details = [];
+      for (var i = 0; i < rows.length; i++) {
+        var cells = rows[i].querySelectorAll('td');
+        if (cells.length >= 4) {
+          details.push(cells[0].textContent.trim() + ' | Qty: ' + cells[1].textContent.trim() + ' | Unit: ' + cells[2].textContent.trim() + ' | Amount: ' + cells[3].textContent.trim());
+        }
+      }
+      itemDetails = details.join('\n');
+    }
+
+    var totalRows = preview.querySelectorAll('.paper-total > div');
+    for (var r = 0; r < totalRows.length; r++) {
+      var spans = totalRows[r].querySelectorAll('span');
+      if (spans.length < 2) continue;
+      var label = spans[0].textContent.trim().toLowerCase();
+      var value = spans[1].textContent.trim();
+      if (label === 'subtotal') subtotal = value;
+      else if (label === 'discount') discount = value;
+      else if (label === 'gst') gst = value;
+    }
+    labourTotal = (itemDetails.match(/Labour\s*\|[^\n]*Amount:\s*([^\n]+)/i) || [,''])[1];
+    var materialLines = itemDetails.split('\n').filter(function(line){ return !/^Labour\s*\|/i.test(line); });
+    materialsTotal = materialLines.length ? materialLines.join('\n') : '';
 
     var token = quoteNumber + '|' + customer.name + '|' + decision + '|' + total;
     var payload = {
@@ -68,6 +101,12 @@
       customer_email: customer.email,
       customer_address: customer.address,
       job_description: jobDescription,
+      item_details: itemDetails,
+      materials_details: materialsTotal,
+      labour_details: labourTotal,
+      subtotal: subtotal,
+      discount: discount,
+      gst: gst,
       total: total,
       quote_total: total,
       decision: decision,

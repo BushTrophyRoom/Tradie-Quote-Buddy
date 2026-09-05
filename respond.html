@@ -60,6 +60,11 @@
   $('intro').textContent=accepted?'Thanks. Your acceptance is being sent to the business now.':'Thanks. Your decision is being sent to the business now.';
   $('summary').innerHTML='<div><span>Quote</span><span>'+esc(data.quote_number)+'</span></div><div><span>Customer</span><span>'+esc(data.customer_name)+'</span></div><div><span>Total</span><span>'+esc(data.total)+'</span></div><div><span>Decision</span><span>'+esc(data.decision)+'</span></div>';
 
+  if(!String(data.business_email||'').trim()){
+    setStatus('error','Business email is missing','The quote does not have a business notification email. Open Business Settings, add the owner email, save it, and generate the customer response link again.');
+    return;
+  }
+
   if(EMAILJS_PUBLIC_KEY.indexOf('YOUR_')===0 || EMAILJS_SERVICE_ID.indexOf('YOUR_')===0 || EMAILJS_TEMPLATE_ID.indexOf('YOUR_')===0){
     setStatus('error','Email notification is not configured yet','The quote response page is ready, but the business email connection still needs to be connected.');
     return;
@@ -70,6 +75,7 @@
     emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{
       quote_number:data.quote_number,
       business_name:data.business_name,
+      business_email:data.business_email,
       customer_name:data.customer_name,
       customer_phone:data.customer_phone,
       customer_email:data.customer_email,

@@ -55,7 +55,7 @@
   var accepted=String(data.decision).toLowerCase()==='accepted';
   $('title').textContent=accepted?'Quote accepted':'Quote declined';
   $('intro').textContent=accepted?'Thanks. Your acceptance is being sent to the business now.':'Thanks. Your decision is being sent to the business now.';
-  $('summary').innerHTML='<div><span>Quote</span><span>'+esc(data.quote_number)+'</span></div><div><span>Customer</span><span>'+esc(data.customer_name)+'</span></div><div><span>Total</span><span>'+esc(data.total)+'</span></div><div><span>Decision</span><span>'+esc(data.decision)+'</span></div>';
+  $('summary').innerHTML='<div><span>Quote</span><span>'+esc(data.quote_number)+'</span></div><div><span>Customer</span><span>'+esc(data.customer_name)+'</span></div><div><span>Total</span><span>'+esc(data.total || data.quote_total)+'</span></div><div><span>Decision</span><span>'+esc(data.decision || data.quote_status)+'</span></div>';
 
   if(!String(data.business_email||'').trim()){
     setStatus('error','Business email is missing','The quote does not have a business notification email. Open Business Settings, add the owner email, save it, and generate the customer response link again.');
@@ -72,8 +72,11 @@
       customer_phone:data.customer_phone,
       customer_email:data.customer_email,
       customer_address:data.customer_address,
+      job_description:data.job_description,
       total:data.total,
+      quote_total:data.quote_total || data.total,
       decision:data.decision,
+      quote_status:data.quote_status || data.decision,
       response_token:data.response_token,
       responded_at:data.responded_at
     }).then(function(){
@@ -84,7 +87,7 @@
       setStatus('error','We could not send the response automatically','Please contact the business directly and tell them you '+(accepted?'accept':'decline')+' quote '+data.quote_number+'.');
       if(data.business_email){
         var subject=encodeURIComponent('Quote '+data.quote_number+' '+data.decision);
-        var body=encodeURIComponent('Quote '+data.quote_number+'\nCustomer: '+data.customer_name+'\nDecision: '+data.decision+'\nTotal: '+data.total);
+        var body=encodeURIComponent('Quote '+data.quote_number+'\nCustomer: '+data.customer_name+'\nDecision: '+data.decision+'\nTotal: '+(data.total || data.quote_total)+'\nJob: '+(data.job_description || ''));
         $('small').innerHTML='If needed, you can send the response manually. <a class="fallback" href="mailto:'+encodeURIComponent(data.business_email)+'?subject='+subject+'&body='+body+'">Email the business</a>';
       }
     });

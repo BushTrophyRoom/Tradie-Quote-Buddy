@@ -1,18 +1,19 @@
 (function () {
   'use strict';
-  var STYLE_ID='customer-response-styles-v5', ACTION_ID='customer-response-actions-v5';
+  var STYLE_ID='customer-response-styles-v6', ACTION_ID='customer-response-actions-v6';
   function $(id){return document.getElementById(id);}
   function addStyles(){if($(STYLE_ID))return;var style=document.createElement('style');style.id=STYLE_ID;style.textContent='.customer-response{margin-top:24px;padding:18px;border:1px solid #d1d5db;border-radius:14px;background:#fafafa;text-align:center}.customer-response-title{font-size:16px;font-weight:800;margin-bottom:6px}.customer-response-text{font-size:12px;color:#555;line-height:1.5;margin-bottom:14px}.customer-response-actions{display:flex;gap:10px;justify-content:center}.customer-response-actions a{display:inline-block;flex:1;max-width:230px;padding:13px 16px;border-radius:10px;text-decoration:none;font-weight:800;font-size:14px}.response-accept{background:#16803c;color:#fff}.response-decline{background:#e53935;color:#fff}.customer-response-note{margin-top:10px;font-size:11px;color:#777}@media(max-width:430px){.customer-response-actions{flex-direction:column}.customer-response-actions a{max-width:none}}';document.head.appendChild(style);}
   function encodeData(data){var json=JSON.stringify(data),base64=btoa(unescape(encodeURIComponent(json)));return base64.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
   function extractCustomer(block){var result={name:'',phone:'',email:'',address:''};if(!block)return result;var divs=block.querySelectorAll(':scope > div');if(divs[0])result.name=divs[0].textContent.trim();var leftovers=[];for(var i=1;i<divs.length;i++){var text=divs[i].textContent.trim();if(!text)continue;if(!result.email&&/@/.test(text)){result.email=text;continue;}if(!result.phone&&/^[+()\d][\d\s().-]{5,}$/.test(text)){result.phone=text;continue;}leftovers.push(text);}result.address=leftovers.join('\n');return result;}
   function getTextAfterLabel(element,label){if(!element)return '';var text=(element.innerText||element.textContent||'').trim();var re=new RegExp('^\\s*'+label+'\\s*','i');return text.replace(re,'').trim();}
   function money(value){return new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD'}).format(Number(value)||0);}
+  function findSavedQuote(number){try{var raw=localStorage.getItem('tqb_quotes_v6'),list=raw?JSON.parse(raw):[];if(!Array.isArray(list))return null;for(var i=0;i<list.length;i++)if(String(list[i].number||'')===String(number||''))return list[i];}catch(e){}return null;}
   function buildResponseUrl(decision){
     var preview=$('quotePreview');if(!preview)return '#';
-    var q=preview.__tqbQuote||null;
     var numberEl=preview.querySelector('.paper-meta b'),businessEl=preview.querySelector('.paper-head h1'),customer=extractCustomer(preview.querySelector('.customer-block'));
     var totalEl=preview.querySelector('.paper-total .grand span:last-child'),jobEl=preview.querySelector('.job');
-    var quoteNumber=q&&q.number?String(q.number):numberEl?(numberEl.textContent||'').trim():'';
+    var quoteNumber=numberEl?(numberEl.textContent||'').trim():'';
+    var q=preview.__tqbQuote||findSavedQuote(quoteNumber);
     var businessName=businessEl?(businessEl.textContent||'').trim():'Tradie Quote Buddy';
     var total=totalEl?(totalEl.textContent||'').trim():'';
     var businessEmail='',jobDescription='',itemDetails='',materialsDetails='',labourDetails='',subtotal='',discount='',gst='';

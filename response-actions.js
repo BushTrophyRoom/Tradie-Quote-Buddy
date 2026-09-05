@@ -20,9 +20,21 @@
     return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
   }
 
-  function childText(block, index) {
-    var divs = block ? block.querySelectorAll(':scope > div') : [];
-    return divs[index] ? divs[index].textContent.trim() : '';
+  function extractCustomer(block) {
+    var result = {name:'',phone:'',email:'',address:''};
+    if (!block) return result;
+    var divs = block.querySelectorAll(':scope > div');
+    if (divs[0]) result.name = divs[0].textContent.trim();
+    var leftovers = [];
+    for (var i = 1; i < divs.length; i++) {
+      var text = divs[i].textContent.trim();
+      if (!text) continue;
+      if (!result.email && /@/.test(text)) { result.email = text; continue; }
+      if (!result.phone && /^[+()\d][\d\s().-]{5,}$/.test(text)) { result.phone = text; continue; }
+      leftovers.push(text);
+    }
+    result.address = leftovers.join('\n');
+    return result;
   }
 
   function buildResponseUrl(decision) {
@@ -31,13 +43,8 @@
 
     var numberEl = preview.querySelector('.paper-meta b');
     var businessEl = preview.querySelector('.paper-head h1');
-    var customerBlock = preview.querySelector('.customer-block');
+    var customer = extractCustomer(preview.querySelector('.customer-block'));
     var totalEl = preview.querySelector('.paper-total .grand span:last-child');
-
-    var customerName = childText(customerBlock, 0);
-    var customerPhone = childText(customerBlock, 1);
-    var customerEmail = childText(customerBlock, 2);
-    var customerAddress = childText(customerBlock, 3);
     var quoteNumber = numberEl ? numberEl.textContent.trim() : '';
     var businessName = businessEl ? businessEl.textContent.trim() : 'Tradie Quote Buddy';
     var total = totalEl ? totalEl.textContent.trim() : '';
@@ -49,15 +56,15 @@
       businessEmail = String(settings.businessEmail || '').trim();
     } catch (e) {}
 
-    var token = quoteNumber + '|' + customerName + '|' + decision + '|' + total;
+    var token = quoteNumber + '|' + customer.name + '|' + decision + '|' + total;
     var payload = {
       quote_number: quoteNumber,
       business_name: businessName,
       business_email: businessEmail,
-      customer_name: customerName,
-      customer_phone: customerPhone,
-      customer_email: customerEmail,
-      customer_address: customerAddress,
+      customer_name: customer.name,
+      customer_phone: customer.phone,
+      customer_email: customer.email,
+      customer_address: customer.address,
       total: total,
       decision: decision,
       response_token: token,

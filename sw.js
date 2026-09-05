@@ -35,7 +35,7 @@ self.addEventListener('fetch', event => {
         var url = new URL(event.request.url);
         if (url.origin === self.location.origin && url.pathname.endsWith('/app-v7.js')) {
           return response.text().then(function(text) {
-            var injected = text + "\n(function(){var s=document.createElement('script');s.src='./quote-terms.js';s.defer=false;document.head.appendChild(s);})();\n";
+            var injected = text + "\n(function(){var s=document.createElement('script');s.src='./quote-terms.js';s.defer=false;document.head.appendChild(s);})();\n(function(){var s=document.createElement('script');s.src='./response-actions.js?v=1';s.defer=false;document.head.appendChild(s);})();\n";
             return new Response(injected, {headers:{'Content-Type':'application/javascript; charset=utf-8'}});
           });
         }

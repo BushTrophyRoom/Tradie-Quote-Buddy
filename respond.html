@@ -24,11 +24,9 @@
 (function(){
   'use strict';
 
-  /* These three values are intentionally public client-side identifiers.
-     They are filled in after the EmailJS service and template are created. */
-  var EMAILJS_PUBLIC_KEY = 'YOUR_EMAILJS_PUBLIC_KEY';
-  var EMAILJS_SERVICE_ID = 'YOUR_EMAILJS_SERVICE_ID';
-  var EMAILJS_TEMPLATE_ID = 'YOUR_EMAILJS_TEMPLATE_ID';
+  var EMAILJS_PUBLIC_KEY = 'dyBjG4ATAJjl1LYSQ';
+  var EMAILJS_SERVICE_ID = 'service_wmpq4cq';
+  var EMAILJS_TEMPLATE_ID = 'template_hif99a6';
 
   function $(id){return document.getElementById(id);}
   function decodeData(value){
@@ -55,18 +53,12 @@
   }
 
   var accepted=String(data.decision).toLowerCase()==='accepted';
-  var action=accepted?'accepted':'declined';
   $('title').textContent=accepted?'Quote accepted':'Quote declined';
   $('intro').textContent=accepted?'Thanks. Your acceptance is being sent to the business now.':'Thanks. Your decision is being sent to the business now.';
   $('summary').innerHTML='<div><span>Quote</span><span>'+esc(data.quote_number)+'</span></div><div><span>Customer</span><span>'+esc(data.customer_name)+'</span></div><div><span>Total</span><span>'+esc(data.total)+'</span></div><div><span>Decision</span><span>'+esc(data.decision)+'</span></div>';
 
   if(!String(data.business_email||'').trim()){
     setStatus('error','Business email is missing','The quote does not have a business notification email. Open Business Settings, add the owner email, save it, and generate the customer response link again.');
-    return;
-  }
-
-  if(EMAILJS_PUBLIC_KEY.indexOf('YOUR_')===0 || EMAILJS_SERVICE_ID.indexOf('YOUR_')===0 || EMAILJS_TEMPLATE_ID.indexOf('YOUR_')===0){
-    setStatus('error','Email notification is not configured yet','The quote response page is ready, but the business email connection still needs to be connected.');
     return;
   }
 

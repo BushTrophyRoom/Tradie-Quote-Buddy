@@ -1,31 +1,55 @@
-(() => {
+(function () {
   'use strict';
 
-  const QUOTES_KEY = 'tqb_quotes_v5';
-  const SETTINGS_KEY = 'tqb_settings_v5';
-  const $ = id => document.getElementById(id);
-  const money = n => new Intl.NumberFormat('en-AU', { style:'currency', currency:'AUD' }).format(Number(n) || 0);
+  var QUOTES_KEY = 'tqb_quotes_v6';
+  var SETTINGS_KEY = 'tqb_settings_v6';
+  var quotes = [];
+  var settings = {
+    businessName: 'Your Business Name',
+    abn: '',
+    businessPhone: '',
+    businessEmail: '',
+    businessAddress: '',
+    defaultRate: 90
+  };
+  var currentQuote = null;
+  var editingId = null;
 
-  let quotes = [];
-  let settings = { businessName:'Your Business Name', abn:'', businessPhone:'', businessEmail:'', businessAddress:'', defaultRate:90 };
-  let currentQuote = null;
-  let editingId = null;
+  function $(id) { return document.getElementById(id); }
+
+  function money(value) {
+    return new Intl.NumberFormat('en-AU', {
+      style: 'currency',
+      currency: 'AUD'
+    }).format(Number(value) || 0);
+  }
 
   function read(key, fallback) {
-    try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
-    catch (_) { return fallback; }
+    try {
+      var raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch (e) {
+      return fallback;
+    }
   }
 
   function save() {
     try {
       localStorage.setItem(QUOTES_KEY, JSON.stringify(quotes));
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-    } catch (_) {}
+    } catch (e) {}
   }
 
   function show(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id));
-    document.querySelectorAll('.nav').forEach(n => n.classList.toggle('active', n.dataset.screen === id));
+    var screens = document.querySelectorAll('.screen');
+    var navs = document.querySelectorAll('.nav');
+    var i;
+    for (i = 0; i < screens.length; i++) {
+      screens[i].classList.toggle('active', screens[i].id === id);
+    }
+    for (i = 0; i < navs.length; i++) {
+      navs[i].classList.toggle('active', navs[i].getAttribute('data-screen') === id);
+    }
     if (id === 'dashboard') renderDashboard();
     if (id === 'saved') renderSaved();
     if (id === 'settings') loadSettings();
@@ -33,28 +57,36 @@
   }
 
   function calc() {
-    const materials = [...document.querySelectorAll('.item-amount')].reduce((sum, el) => sum + (Number(el.value) || 0), 0);
-    const hours = Number($('labourHours')?.value) || 0;
-    const rate = Number($('hourlyRate')?.value) || 0;
-    const labour = hours * rate;
-    const subtotal = materials + labour;
-    const gst = $('gstEnabled')?.checked ? subtotal * 0.10 : 0;
-    const total = subtotal + gst;
-    if ($('subtotal')) $('subtotal').textContent = money(subtotal);
-    if ($('gst')) $('gst').textContent = money(gst);
-    if ($('grandTotal')) $('grandTotal').textContent = money(total);
-    return { materials, labour, subtotal, gst, total };
+    var amounts = document.querySelectorAll('.item-amount');
+    var materials = 0;
+    var i;
+    for (i = 0; i < amounts.length; i++) materials += Number(amounts[i].value) || 0;
+    var hours = Number($('labourHours').value) || 0;
+    var rate = Number($('hourlyRate').value) || 0;
+    var labour = hours * rate;
+    var subtotal = materials + labour;
+    var gst = $('gstEnabled').checked ? subtotal * 0.10 : 0;
+    var total = subtotal + gst;
+    $('subtotal').textContent = money(subtotal);
+    $('gst').textContent = money(gst);
+    $('grandTotal').textContent = money(total);
+    return { materials: materials, labour: labour, subtotal: subtotal, gst: gst, total: total };
   }
 
-  function addItem(description = '', amount = '') {
-    const row = document.createElement('div');
+  function addItem(description, amount) {
+    description = description || '';
+    amount = amount || '';
+    var row = document.createElement('div');
     row.className = 'item';
     row.innerHTML = '<input class="item-desc" placeholder="Material or other cost"><input class="item-amount" type="number" min="0" step="0.01" placeholder="$"><button type="button" aria-label="Remove item">✕</button>';
     row.querySelector('.item-desc').value = description;
     row.querySelector('.item-amount').value = amount;
-    row.querySelector('.item-amount').addEventListener('input', calc);
     row.querySelector('.item-desc').addEventListener('input', calc);
-    row.querySelector('button').addEventListener('click', () => { row.remove(); calc(); });
+    row.querySelector('.item-amount').addEventListener('input', calc);
+    row.querySelector('button').addEventListener('click', function () {
+      row.remove();
+      calc();
+    });
     $('lineItems').appendChild(row);
   }
 
@@ -63,59 +95,79 @@
     currentQuote = null;
     $('quoteFormEl').reset();
     $('lineItems').innerHTML = '';
-    addItem();
+    addItem('', '');
     $('hourlyRate').value = settings.defaultRate || 90;
     $('quoteFormTitle').textContent = 'New quote';
     $('saveQuoteBtn').textContent = 'Save & Preview Quote';
     calc();
   }
 
+  function escapeHtml(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function (ch) {
+      var map = { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' };
+      return map[ch];
+    });
+  }
+
   function collectQuote() {
-    const totals = calc();
-    const items = [...document.querySelectorAll('.item')].map(row => ({
-      description: row.querySelector('.item-desc').value.trim(),
-      amount: Number(row.querySelector('.item-amount').value) || 0
-    })).filter(i => i.description || i.amount);
+    var totals = calc();
+    var rows = document.querySelectorAll('.item');
+    var items = [];
+    var i;
+    for (i = 0; i < rows.length; i++) {
+      var desc = rows[i].querySelector('.item-desc').value.trim();
+      var amount = Number(rows[i].querySelector('.item-amount').value) || 0;
+      if (desc || amount) items.push({ description: desc, amount: amount });
+    }
     return {
-      id: editingId || Date.now() + '-' + Math.random().toString(16).slice(2),
-      number: currentQuote?.number || 'Q-' + String(Date.now()).slice(-6),
-      date: currentQuote?.date || new Date().toLocaleDateString('en-AU'),
+      id: editingId || String(Date.now()) + '-' + Math.random().toString(16).slice(2),
+      number: currentQuote && currentQuote.number ? currentQuote.number : 'Q-' + String(Date.now()).slice(-6),
+      date: currentQuote && currentQuote.date ? currentQuote.date : new Date().toLocaleDateString('en-AU'),
       customerName: $('customerName').value.trim(),
       customerPhone: $('customerPhone').value.trim(),
       customerEmail: $('customerEmail').value.trim(),
       jobDescription: $('jobDescription').value.trim(),
-      items,
+      items: items,
       labourHours: Number($('labourHours').value) || 0,
       hourlyRate: Number($('hourlyRate').value) || 0,
-      ...totals,
+      materials: totals.materials,
+      labour: totals.labour,
+      subtotal: totals.subtotal,
+      gst: totals.gst,
+      total: totals.total,
       savedAt: Date.now()
     };
   }
 
-  function escapeHtml(value) {
-    return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
-  }
-
   function quoteCard(q) {
-    return '<div class="quote-card" data-id="' + escapeHtml(q.id) + '"><div class="row"><b>' + escapeHtml(q.customerName || 'Unnamed customer') + '</b><b>' + money(q.total) + '</b></div><small>' + escapeHtml(q.number) + ' · ' + escapeHtml(q.date) + '</small><div class="desc">' + escapeHtml(q.jobDescription || '') + '</div></div>';
+    return '<div class="quote-card" data-id="' + escapeHtml(q.id) + '"><div class="row"><b>' + escapeHtml(q.customerName || 'Unnamed customer') + '</b><b>' + money(q.total) + '</b></div><small>' + escapeHtml(q.number || '') + ' · ' + escapeHtml(q.date || '') + '</small><div class="desc">' + escapeHtml(q.jobDescription || '') + '</div></div>';
   }
 
   function bindCards() {
-    document.querySelectorAll('.quote-card').forEach(card => {
-      card.onclick = () => {
-        const q = quotes.find(x => x.id === card.dataset.id);
-        if (!q) return;
-        currentQuote = q;
-        renderPreview(q);
-        show('preview');
+    var cards = document.querySelectorAll('.quote-card');
+    var i;
+    for (i = 0; i < cards.length; i++) {
+      cards[i].onclick = function () {
+        var id = this.getAttribute('data-id');
+        var j;
+        for (j = 0; j < quotes.length; j++) {
+          if (String(quotes[j].id) === String(id)) {
+            currentQuote = quotes[j];
+            renderPreview(currentQuote);
+            show('preview');
+            return;
+          }
+        }
       };
-    });
+    }
   }
 
   function renderDashboard() {
-    if (!$('quoteCount')) return;
+    var total = 0;
+    var i;
+    for (i = 0; i < quotes.length; i++) total += Number(quotes[i].total) || 0;
     $('quoteCount').textContent = quotes.length;
-    $('totalQuoted').textContent = money(quotes.reduce((sum, q) => sum + (Number(q.total) || 0), 0));
+    $('totalQuoted').textContent = money(total);
     $('recentQuotes').innerHTML = quotes.length ? quotes.slice(0, 5).map(quoteCard).join('') : '<div class="empty">No quotes yet.<br><br>Tap <b>New Quote</b> to create your first one.</div>';
     bindCards();
   }
@@ -126,9 +178,13 @@
   }
 
   function renderPreview(q) {
-    const itemRows = (q.items || []).map(i => '<tr><td>' + escapeHtml(i.description) + '</td><td>' + money(i.amount) + '</td></tr>').join('');
-    const labourRow = q.labourHours ? '<tr><td>Labour (' + q.labourHours + ' hrs × ' + money(q.hourlyRate) + '/hr)</td><td>' + money(q.labour) + '</td></tr>' : '';
-    $('quotePreview').innerHTML = '<div class="paper-head"><div><div class="logo">🛠️</div><h1>' + escapeHtml(settings.businessName || 'Your Business Name') + '</h1><div>' + escapeHtml(settings.businessAddress || '') + '</div><div>' + escapeHtml(settings.businessPhone || '') + ' ' + escapeHtml(settings.businessEmail || '') + '</div><div>' + (settings.abn ? 'ABN ' + escapeHtml(settings.abn) : '') + '</div></div><div class="paper-meta"><h2>QUOTE</h2><b>' + escapeHtml(q.number) + '</b><div>' + escapeHtml(q.date) + '</div></div></div><div><b>Quote for</b><div>' + escapeHtml(q.customerName) + '</div><div>' + escapeHtml(q.customerPhone) + '</div><div>' + escapeHtml(q.customerEmail) + '</div></div><p class="job"><b>Job description</b><br>' + escapeHtml(q.jobDescription).replace(/\n/g, '<br>') + '</p><table><thead><tr><th>Description</th><th>Amount</th></tr></thead><tbody>' + itemRows + labourRow + '</tbody></table><div class="paper-total"><div><span>Subtotal</span><span>' + money(q.subtotal) + '</span></div><div><span>GST</span><span>' + money(q.gst) + '</span></div><div class="grand"><span>Total</span><span>' + money(q.total) + '</span></div></div><p class="thanks">Thank you for the opportunity to quote on your job.</p>';
+    var rows = '';
+    var i;
+    for (i = 0; i < (q.items || []).length; i++) {
+      rows += '<tr><td>' + escapeHtml(q.items[i].description) + '</td><td>' + money(q.items[i].amount) + '</td></tr>';
+    }
+    if (q.labourHours) rows += '<tr><td>Labour (' + q.labourHours + ' hrs × ' + money(q.hourlyRate) + '/hr)</td><td>' + money(q.labour) + '</td></tr>';
+    $('quotePreview').innerHTML = '<div class="paper-head"><div><div class="logo">🛠️</div><h1>' + escapeHtml(settings.businessName) + '</h1><div>' + escapeHtml(settings.businessAddress) + '</div><div>' + escapeHtml(settings.businessPhone) + ' ' + escapeHtml(settings.businessEmail) + '</div><div>' + (settings.abn ? 'ABN ' + escapeHtml(settings.abn) : '') + '</div></div><div class="paper-meta"><h2>QUOTE</h2><b>' + escapeHtml(q.number) + '</b><div>' + escapeHtml(q.date) + '</div></div></div><div><b>Quote for</b><div>' + escapeHtml(q.customerName) + '</div><div>' + escapeHtml(q.customerPhone) + '</div><div>' + escapeHtml(q.customerEmail) + '</div></div><p class="job"><b>Job description</b><br>' + escapeHtml(q.jobDescription).replace(/\n/g, '<br>') + '</p><table><thead><tr><th>Description</th><th>Amount</th></tr></thead><tbody>' + rows + '</tbody></table><div class="paper-total"><div><span>Subtotal</span><span>' + money(q.subtotal) + '</span></div><div><span>GST</span><span>' + money(q.gst) + '</span></div><div class="grand"><span>Total</span><span>' + money(q.total) + '</span></div></div><p class="thanks">Thank you for the opportunity to quote on your job.</p>';
   }
 
   function editQuote(q) {
@@ -144,53 +200,61 @@
     $('hourlyRate').value = q.hourlyRate || settings.defaultRate || 90;
     $('gstEnabled').checked = Number(q.gst) > 0;
     $('lineItems').innerHTML = '';
-    (q.items || []).forEach(i => addItem(i.description, i.amount));
-    if (!(q.items || []).length) addItem();
+    var i;
+    for (i = 0; i < (q.items || []).length; i++) addItem(q.items[i].description, q.items[i].amount);
+    if (!q.items || !q.items.length) addItem('', '');
     calc();
     show('quoteForm');
   }
 
   function loadSettings() {
-    ['businessName','abn','businessPhone','businessEmail','businessAddress','defaultRate'].forEach(k => { if ($(k)) $(k).value = settings[k] ?? ''; });
+    $('businessName').value = settings.businessName || '';
+    $('abn').value = settings.abn || '';
+    $('businessPhone').value = settings.businessPhone || '';
+    $('businessEmail').value = settings.businessEmail || '';
+    $('businessAddress').value = settings.businessAddress || '';
+    $('defaultRate').value = settings.defaultRate || 0;
   }
 
   function backup() {
-    const blob = new Blob([JSON.stringify({version:5, quotes, settings}, null, 2)], {type:'application/json'});
-    const a = document.createElement('a');
+    var blob = new Blob([JSON.stringify({version:6, quotes:quotes, settings:settings}, null, 2)], {type:'application/json'});
+    var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = 'tradie-quote-buddy-backup.json';
     a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
   }
 
   function wire() {
-    $('newQuoteBtn').onclick = () => { resetForm(); show('quoteForm'); };
-    $('addItemBtn').onclick = () => addItem();
-    $('settingsBtn').onclick = () => show('settings');
-    $('viewAllBtn').onclick = () => show('saved');
-    $('printBtn').onclick = () => window.print();
-    $('editQuoteBtn').onclick = () => { if (currentQuote) editQuote(currentQuote); };
-    $('deleteQuoteBtn').onclick = () => { if (currentQuote) $('confirmModal').classList.add('show'); };
-    $('cancelDelete').onclick = () => $('confirmModal').classList.remove('show');
-    $('confirmDelete').onclick = () => {
+    $('newQuoteBtn').onclick = function () { resetForm(); show('quoteForm'); };
+    $('addItemBtn').onclick = function () { addItem('', ''); };
+    $('settingsBtn').onclick = function () { show('settings'); };
+    $('viewAllBtn').onclick = function () { show('saved'); };
+    $('printBtn').onclick = function () { window.print(); };
+    $('editQuoteBtn').onclick = function () { if (currentQuote) editQuote(currentQuote); };
+    $('deleteQuoteBtn').onclick = function () { if (currentQuote) $('confirmModal').classList.add('show'); };
+    $('cancelDelete').onclick = function () { $('confirmModal').classList.remove('show'); };
+    $('confirmDelete').onclick = function () {
       if (!currentQuote) return;
-      quotes = quotes.filter(q => q.id !== currentQuote.id);
+      quotes = quotes.filter(function (q) { return q.id !== currentQuote.id; });
       save();
       currentQuote = null;
       $('confirmModal').classList.remove('show');
       show('saved');
     };
-    $('quoteFormEl').onsubmit = e => {
+    $('quoteFormEl').onsubmit = function (e) {
       e.preventDefault();
-      const q = collectQuote();
-      const index = quotes.findIndex(x => x.id === editingId);
+      var q = collectQuote();
+      var index = -1;
+      var i;
+      for (i = 0; i < quotes.length; i++) if (quotes[i].id === editingId) index = i;
       if (index >= 0) quotes[index] = q; else quotes.unshift(q);
       currentQuote = q;
       save();
       renderPreview(q);
       show('preview');
     };
-    $('settingsForm').onsubmit = e => {
+    $('settingsForm').onsubmit = function (e) {
       e.preventDefault();
       settings = {
         businessName: $('businessName').value.trim(),
@@ -204,40 +268,50 @@
       show('dashboard');
     };
     $('backupBtn').onclick = backup;
-    $('restoreBtn').onclick = () => $('restoreFile').click();
-    $('restoreFile').onchange = e => {
-      const file = e.target.files[0];
+    $('restoreBtn').onclick = function () { $('restoreFile').click(); };
+    $('restoreFile').onchange = function (e) {
+      var file = e.target.files[0];
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
+      var reader = new FileReader();
+      reader.onload = function () {
         try {
-          const data = JSON.parse(reader.result);
+          var data = JSON.parse(reader.result);
           if (!Array.isArray(data.quotes)) throw new Error('invalid');
           quotes = data.quotes;
-          settings = {...settings, ...(data.settings || {})};
+          settings = Object.assign({}, settings, data.settings || {});
           save();
           show('dashboard');
-        } catch (_) { alert('That backup file could not be restored.'); }
+        } catch (err) {
+          alert('That backup file could not be restored.');
+        }
       };
       reader.readAsText(file);
       e.target.value = '';
     };
-    $('subscribeBtn')?.addEventListener('click', () => location.href = 'subscription.html');
-    document.querySelectorAll('[data-back]').forEach(btn => btn.onclick = () => show('dashboard'));
-    document.querySelectorAll('.nav').forEach(nav => nav.onclick = () => { if (nav.dataset.screen === 'quoteForm') resetForm(); show(nav.dataset.screen); });
+    var subscribe = $('subscribeBtn');
+    if (subscribe) subscribe.onclick = function () { location.href = 'subscription.html'; };
+    var back = document.querySelectorAll('[data-back]');
+    var i;
+    for (i = 0; i < back.length; i++) back[i].onclick = function () { show('dashboard'); };
+    var navs = document.querySelectorAll('.nav');
+    for (i = 0; i < navs.length; i++) navs[i].onclick = function () {
+      var target = this.getAttribute('data-screen');
+      if (target === 'quoteForm') resetForm();
+      show(target);
+    };
     $('labourHours').oninput = calc;
     $('hourlyRate').oninput = calc;
     $('gstEnabled').onchange = calc;
   }
 
   function start() {
-    quotes = read(QUOTES_KEY, read('tqb_quotes_v4', read('tqb_quotes_v3', [])));
-    settings = {...settings, ...read(SETTINGS_KEY, read('tqb_settings_v3', read('tqb_settings_v2', {})))};
+    quotes = read(QUOTES_KEY, read('tqb_quotes_v5', read('tqb_quotes_v4', [])));
+    settings = Object.assign({}, settings, read(SETTINGS_KEY, read('tqb_settings_v5', read('tqb_settings_v3', {}))));
     try {
       wire();
       resetForm();
       show('dashboard');
-      console.log('Tradie Quote Buddy runtime loaded');
+      console.log('Tradie Quote Buddy runtime loaded v6');
     } catch (err) {
       console.error('Tradie Quote Buddy startup error:', err);
     }

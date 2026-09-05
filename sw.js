@@ -1,9 +1,9 @@
-const CACHE_NAME = 'tradie-quote-buddy-v7';
+const CACHE_NAME = 'tradie-quote-buddy-v8';
 const APP_SHELL = [
   './',
   './index.html',
-  './app-fixed.js?v=6',
-  './manifest.webmanifest?v=6',
+  './app-v7.js?v=7',
+  './manifest.webmanifest?v=7',
   './icon.svg'
 ];
 
@@ -27,7 +27,6 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
-
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;

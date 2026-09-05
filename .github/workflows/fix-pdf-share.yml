@@ -1,0 +1,42 @@
+name: Fix PDF sharing
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.event.head_commit.message != 'Fix PDF sharing'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Patch PDF sharing
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          new_pdf = """async function pdf(){if(!currentQuote)return;let b=$('printBtn'),old=b.textContent;try{b.textContent='Creating PDF…';let blob=await html2pdf().set({margin:.2,image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true,backgroundColor:'#fff'},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).from($('quotePreview')).outputPdf('blob'),file=new File([blob],currentQuote.number+'.pdf',{type:'application/pdf'});if(navigator.share){try{if(navigator.canShare&&!navigator.canShare({files:[file]}))throw Error('File sharing unavailable');await navigator.share({title:'Quote '+currentQuote.number,files:[file]});return}catch(e){if(e.name==='AbortError')return}}let u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=currentQuote.number+'.pdf';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000)}catch(e){if(e.name!=='AbortError')alert('Could not create or download the PDF. Please try again.')}finally{b.textContent=old}}function loadSettings"""
+
+          pattern = r"async function pdf\(\)\{.*?\}function loadSettings"
+          s2, n = re.subn(pattern, new_pdf, s, count=1, flags=re.DOTALL)
+          if n != 1:
+              raise SystemExit('PDF function was not found, so no change was made.')
+          p.write_text(s2, encoding='utf-8')
+
+      - name: Commit PDF sharing fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Fix PDF sharing"
+          git push

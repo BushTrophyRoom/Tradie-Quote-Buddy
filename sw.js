@@ -1,7 +1,7 @@
-const CACHE_NAME = 'tradie-quote-buddy-v27';
+const CACHE_NAME = 'tradie-quote-buddy-v28';
 const APP_SHELL = [
   './', './index.html', './app-v7.js?v=10', './dashboard-layout.js?v=4',
-  './response-actions.js?v=11', './quote-terms.js?v=2', './customer-send.js?v=2', './respond.html',
+  './response-actions.js?v=11', './quote-terms.js?v=2', './customer-send.js?v=3', './respond.html',
   './respond-v2.html?v=3', './manifest.webmanifest?v=10', './icon.svg?v=2'
 ];
 
@@ -48,7 +48,7 @@ self.addEventListener('fetch', event => {
             '(function(){var s=document.createElement("script");s.src="./quote-terms.js?v=2";document.head.appendChild(s);})();\n' +
             '(function(){var s=document.createElement("script");s.src="./response-actions.js?v=11";document.head.appendChild(s);})();\n' +
             '(function(){var s=document.createElement("script");s.src="./dashboard-layout.js?v=4";document.head.appendChild(s);})();\n' +
-            '(function(){var s=document.createElement("script");s.src="./customer-send.js?v=2";document.head.appendChild(s);})();\n',
+            '(function(){var s=document.createElement("script");s.src="./customer-send.js?v=3";document.head.appendChild(s);})();\n',
             {headers:{'Content-Type':'application/javascript; charset=utf-8'}}
           ));
         }

@@ -3,7 +3,7 @@
 var EMAILJS_SERVICE_ID='service_wmpq4cq';
 var EMAILJS_CUSTOMER_TEMPLATE_ID='template_9kx2gib';
 var EMAILJS_PUBLIC_KEY='dyBjG4ATAJjl1LYSQ';
-var RESPONSE_BASE='./respond-v2.html?data=';
+var RESPONSE_BASE='https://bushtrophyroom.github.io/Tradie-Quote-Buddy/respond-v2.html?data=';
 var SUPABASE_FUNCTION_URL='https://cychngcvhgtfuahavlqq.supabase.co/functions/v1/create-quote-pdf';
 var JS_PDF_URL='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
 var AUTO_TABLE_URL='https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js';

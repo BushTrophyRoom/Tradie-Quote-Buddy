@@ -2,7 +2,7 @@
 'use strict';
 var SERVICE='service_wmpq4cq',TEMPLATE='template_9kx2gib',PUBLIC_KEY='dyBjG4ATAJjl1LYSQ';
 var VIEW_BASE='https://bushtrophyroom.github.io/Tradie-Quote-Buddy/quote-view.html?data=';
-var RESPONSE_BASE='https://bushtrophyroom.github.io/Tradie-Quote-Buddy/respond-v2.html?data=';
+var RESPONSE_BASE='https://bushtrophyroom.github.io/Tradie-Quote-Buddy/respond-v2.html?v=4&data=';
 function $(id){return document.getElementById(id)}
 function money(v){return new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD'}).format(Number(v)||0)}
 function enc(o){var s=JSON.stringify(o),b=btoa(unescape(encodeURIComponent(s)));return b.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}

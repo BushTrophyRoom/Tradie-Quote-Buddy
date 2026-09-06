@@ -1,6 +1,7 @@
 (function(){
 'use strict';
 var INVOICES_KEY='tqb_invoices_v1',VIEW_BASE='https://bushtrophyroom.github.io/Tradie-Quote-Buddy/invoice-view.html?data=';
+var EMAIL_SERVICE='service_wmpq4cq',EMAIL_TEMPLATE='template_9kx2gib',EMAIL_PUBLIC_KEY='dyBjG4ATAJjl1LYSQ';
 function $(id){return document.getElementById(id)}
 function money(v){return new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD'}).format(Number(v)||0)}
 function esc(v){return String(v==null?'':v).replace(/[&<>\"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'})[c]})}
@@ -19,7 +20,49 @@ function markConverted(q,inv){var list=quotes();for(var i=0;i<list.length;i++)if
 function updateConvertButton(){var b=$('convertInvoiceBtn');if(!b)return;var q=getCurrentQuote();if(!q)return;b.disabled=!isAccepted(q);b.title=isAccepted(q)?'Convert this accepted quote to an invoice':'Only accepted quotes can be converted to an invoice';b.textContent=isAccepted(q)?'🧾 Convert to Invoice':'🧾 Awaiting Customer Acceptance';b.style.opacity=isAccepted(q)?'1':'0.55';b.style.cursor=isAccepted(q)?'pointer':'not-allowed'}
 function invoiceUrl(inv){return VIEW_BASE+enc(inv)}
 function markSent(inv){var list=readInvoices();for(var i=0;i<list.length;i++)if(String(list[i].id)===String(inv.id)){list[i].lastSentAt=Date.now();break}saveInvoices(list)}
-function sendInvoice(inv){if(!inv)return;if(!inv.customerEmail){alert('This invoice needs the customer email address before it can be sent.');return}var url=invoiceUrl(inv),subject='Invoice '+inv.number+' from '+(inv.businessName||'Tradie Quote Buddy'),body='Hi '+(inv.customerName||'there')+',\n\nPlease find your invoice '+inv.number+' below.\n\nTotal due: '+money(inv.total)+'\nDue: '+(inv.dueDate||'')+'\n\nView invoice and download PDF:\n'+url+'\n\nThanks,\n'+(inv.businessName||'Tradie Quote Buddy');markSent(inv);window.location.href='mailto:'+encodeURIComponent(inv.customerEmail)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);setTimeout(function(){alert('Your email app has been opened with invoice '+inv.number+' ready to send to '+inv.customerEmail+'.')},500)}
+function sendInvoice(inv){
+ if(!inv)return;
+ if(!inv.customerEmail){alert('This invoice needs the customer email address before it can be sent.');return}
+ if(!window.emailjs){alert('Email service is still loading. Please refresh the app and try again.');return}
+ try{emailjs.init({publicKey:EMAIL_PUBLIC_KEY})}catch(e){}
+ var url=invoiceUrl(inv),b=$('sendInvoiceBtn');
+ if(b){b.disabled=true;b.textContent='⏳ Sending Invoice…'}
+ var params={
+   to_email:inv.customerEmail,
+   customer_email:inv.customerEmail,
+   customer_name:inv.customerName||'Customer',
+   business_name:inv.businessName||'Tradie Quote Buddy',
+   business_email:inv.businessEmail||'',
+   business_phone:inv.businessPhone||'',
+   business_address:inv.businessAddress||'',
+   invoice_number:inv.number,
+   invoice_no:inv.number,
+   quote_number:inv.quoteNumber||'',
+   invoice_date:inv.invoiceDate||'',
+   due_date:inv.dueDate||'',
+   payment_terms_days:String(inv.paymentTermsDays||0),
+   invoice_total:money(inv.total),
+   total:money(inv.total),
+   amount_due:money(inv.total),
+   invoice_link:url,
+   response_link:url,
+   quote_pdf:url,
+   invoice_pdf:url,
+   quote_status:'Invoice - Unpaid'
+ };
+ emailjs.send(EMAIL_SERVICE,EMAIL_TEMPLATE,params).then(function(){
+   markSent(inv);
+   if(b){b.disabled=false;b.textContent='✓ Invoice Sent'}
+   renderList();
+   alert('Invoice '+inv.number+' was emailed automatically to '+inv.customerEmail+'.');
+   setTimeout(function(){if(b){b.textContent='📧 Send Invoice';b.disabled=false}},2500)
+ }).catch(function(e){
+   console.error(e);
+   if(b){b.disabled=false;b.textContent='⚠️ Send Failed'}
+   alert('We could not send the invoice automatically. '+(e&&e.text?e.text:(e&&e.message?e.message:'Please try again.')));
+   setTimeout(function(){if(b){b.textContent='📧 Send Invoice';b.disabled=false}},2500)
+ });
+}
 function copyInvoiceLink(inv){var url=invoiceUrl(inv);if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(function(){alert('Invoice link copied. You can paste it into an email, text message or Messenger.')}).catch(function(){prompt('Copy this invoice link:',url)})}else prompt('Copy this invoice link:',url)}
 function convert(q){if(!q)return;if(!isAccepted(q)){alert('This quote must be accepted by the customer before it can be converted to an invoice.');return}var existing=readInvoices().find(function(x){return String(x.quoteId)===String(q.id)});if(existing){alert(q.number+' has already been converted to '+existing.number+'.');showInvoice(existing);return}if(!confirm('Convert '+q.number+' to an invoice?\n\nThe invoice will include payment terms.'))return;var s=settings(),days=Math.max(0,Number(q.paymentTermsDays)||7),issued=new Date().toLocaleDateString('en-AU');var inv={id:String(Date.now())+'-'+Math.random().toString(16).slice(2),number:nextInvoiceNumber(),quoteId:q.id,quoteNumber:q.number,status:'Unpaid',invoiceDate:issued,dueDate:datePlus(issued,days),paymentTermsDays:days,businessName:s.businessName||'Your Business Name',abn:s.abn||'',businessPhone:s.businessPhone||'',businessEmail:s.businessEmail||'',businessAddress:s.businessAddress||'',customerName:q.customerName||'',customerPhone:q.customerPhone||'',customerEmail:q.customerEmail||'',customerAddress:q.customerAddress||'',jobDescription:q.jobDescription||'',items:Array.isArray(q.items)?q.items.map(function(x){return Object.assign({},x)}):[],labourHours:Number(q.labourHours)||0,hourlyRate:Number(q.hourlyRate)||0,labour:Number(q.labour)||0,subtotal:Number(q.subtotal)||0,discount:Number(q.discount)||0,gst:Number(q.gst)||0,total:Number(q.total)||0,createdAt:Date.now()};var list=readInvoices();list.unshift(inv);saveInvoices(list);markConverted(q,inv);alert('Invoice '+inv.number+' created from '+q.number+'.');showInvoice(inv)}
 function addStyles(){if($('tqb-invoice-style'))return;var s=document.createElement('style');s.id='tqb-invoice-style';s.textContent=`#invoices .invoice-list{display:grid;gap:12px;max-width:1100px}.invoice-card{background:#fff;border:1px solid #e6eaf0;border-radius:14px;padding:18px;box-shadow:0 3px 14px #1720330b;cursor:pointer}.invoice-card:hover{background:#fafcff}.invoice-card .row{display:flex;justify-content:space-between;gap:12px}.invoice-card small{display:block;color:#667085;margin-top:5px}.invoice-status{display:inline-block;padding:5px 11px;border-radius:999px;background:#fff2cf;color:#8a5a00;font-size:12px;font-weight:800}.invoice-paper{background:#fff;max-width:850px;margin:0 auto;padding:38px;border-radius:10px;box-shadow:0 3px 18px #17203312}.invoice-paper-head{display:flex;justify-content:space-between;gap:25px;border-bottom:2px solid #172033;padding-bottom:20px}.invoice-paper h1{margin:0 0 7px;font-size:27px}.invoice-paper h2{margin:0 0 8px;font-size:27px}.invoice-meta{text-align:right}.invoice-meta b{font-size:17px}.invoice-block{margin-top:24px;line-height:1.5}.invoice-table{width:100%;border-collapse:collapse;margin-top:22px}.invoice-table th,.invoice-table td{padding:10px 8px;border-bottom:1px solid #e5e7eb;text-align:left}.invoice-table th:not(:first-child),.invoice-table td:not(:first-child){text-align:right}.invoice-totals{width:300px;margin:20px 0 0 auto}.invoice-totals div{display:flex;justify-content:space-between;padding:6px 0}.invoice-totals .grand{border-top:2px solid #172033;font-size:20px;font-weight:800;margin-top:4px;padding-top:12px}.invoice-payment{margin-top:28px;padding:18px;border:1px solid #e5e7eb;border-radius:12px;background:#f8fafc}.invoice-actions{display:flex;gap:10px;max-width:850px;margin:0 auto 14px;flex-wrap:wrap}.invoice-actions button{flex:1;min-width:170px}.invoice-note{color:#667085;font-size:12px;margin-top:16px}@media(max-width:600px){.invoice-paper{padding:20px}.invoice-paper-head{flex-direction:column}.invoice-meta{text-align:left}.invoice-totals{width:100%}}@media print{body{background:#fff!important;padding:0!important}.topbar,.bottom-nav,.section-head,.invoice-actions{display:none!important}.screen#invoices{display:block!important;padding:0}.invoice-paper{box-shadow:none;border-radius:0;max-width:none}}`;document.head.appendChild(s)}

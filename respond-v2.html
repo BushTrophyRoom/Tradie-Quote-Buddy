@@ -24,6 +24,7 @@ function setStatus(type,title,text){var e=$('status');e.className='status '+type
 function clean(v){return String(v==null?'':v).replace(/\r/g,'').trim()}
 function splitLines(v){return clean(v).split(/\n+/).map(function(x){return x.trim()}).filter(Boolean)}
 function parseItemLine(line){var parts=line.split('|').map(function(x){return x.trim()});if(parts.length>=4){var desc=parts[0].replace(/^Description\s*:\s*/i,'');var qty=(parts[1].match(/Qty\s*:\s*(.*)/i)||[])[1]||'';var unit=(parts[2].match(/Unit\s*:\s*(.*)/i)||[])[1]||'';var amount=(parts[3].match(/Amount\s*:\s*(.*)/i)||[])[1]||'';return [desc,qty,unit,amount]}return [line,'','','']}
+function parseLabourLine(line){var parts=line.split('|').map(function(x){return x.trim()});var hours='',rate='',amount='';for(var i=0;i<parts.length;i++){var p=parts[i];var m=p.match(/^Hours\s*:\s*(.*)$/i);if(m)hours=m[1].trim();m=p.match(/^Rate\s*:\s*(.*)$/i);if(m)rate=m[1].trim();m=p.match(/^Amount\s*:\s*(.*)$/i);if(m)amount=m[1].trim()}return ['Labour',hours?hours+' hrs':'',rate,amount]}
 function money(v){return clean(v)}
 function makePdf(d){
   if(!window.jspdf||!window.jspdf.jsPDF) return Promise.reject(new Error('PDF library unavailable'));
@@ -42,7 +43,7 @@ function makePdf(d){
   ensure(25);addWrapped('JOB DESCRIPTION',margin,contentW,9,true);addWrapped(d.job_description||'No job description supplied.',margin,contentW,10,false);y+=3;
   ensure(45);addWrapped('MATERIALS & OTHER COSTS',margin,contentW,9,true);
   var rawLines=splitLines(d.materials_details||d.item_details||''),rows=[];rawLines.forEach(function(line){if(!/^materials\s*&\s*other\s*costs$/i.test(line))rows.push(parseItemLine(line))});
-  if(d.labour_details)rows.push(['Labour',clean(d.labour_details).replace(/^Labour\s*\|\s*/i,''),'','']);
+  if(d.labour_details)rows.push(parseLabourLine(clean(d.labour_details)));
   if(!rows.length)rows=[['No item breakdown supplied.','','','']];
   if(typeof doc.autoTable==='function'){
     doc.autoTable({startY:y,margin:{left:margin,right:margin},head:[['Description','Qty','Unit','Amount']],body:rows,theme:'grid',styles:{font:'helvetica',fontSize:8,cellPadding:2.5,textColor:[23,23,23]},headStyles:{fontStyle:'bold',fillColor:[35,35,35],textColor:[255,255,255]},columnStyles:{0:{cellWidth:92},1:{cellWidth:24,halign:'right'},2:{cellWidth:30,halign:'right'},3:{cellWidth:32,halign:'right'}},didDrawPage:function(){doc.setFontSize(7);doc.setFont('helvetica','normal');doc.text('Tradie Quote Buddy • '+clean(d.quote_number),margin,pageH-8)}});

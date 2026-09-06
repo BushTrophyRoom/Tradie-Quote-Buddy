@@ -1,13 +1,14 @@
-const CACHE_NAME = 'tradie-quote-buddy-v20';
+const CACHE_NAME = 'tradie-quote-buddy-v21';
 const APP_SHELL = [
   './',
   './index.html',
   './app-v7.js?v=10',
+  './dashboard-layout.js?v=1',
   './response-actions.js?v=11',
   './quote-terms.js?v=2',
   './respond.html',
   './respond-v2.html?v=3',
-  './manifest.webmanifest?v=9',
+  './manifest.webmanifest?v=10',
   './icon.svg'
 ];
 
@@ -37,7 +38,7 @@ self.addEventListener('fetch', event => {
         var url = new URL(event.request.url);
         if (url.origin === self.location.origin && url.pathname.endsWith('/app-v7.js')) {
           return response.text().then(function(text) {
-            var injected = text + "\n(function(){var s=document.createElement('script');s.src='./quote-terms.js?v=2';s.defer=false;document.head.appendChild(s);})();\n(function(){var s=document.createElement('script');s.src='./response-actions.js?v=11';s.defer=false;document.head.appendChild(s);})();\n";
+            var injected = text + "\n(function(){var s=document.createElement('script');s.src='./quote-terms.js?v=2';s.defer=false;document.head.appendChild(s);})();\n(function(){var s=document.createElement('script');s.src='./response-actions.js?v=11';s.defer=false;document.head.appendChild(s);})();\n(function(){var s=document.createElement('script');s.src='./dashboard-layout.js?v=1';s.defer=false;document.head.appendChild(s);})();\n";
             return new Response(injected, {headers:{'Content-Type':'application/javascript; charset=utf-8'}});
           });
         }

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tradie-quote-buddy-v21';
+const CACHE_NAME = 'tradie-quote-buddy-v22';
 const APP_SHELL = [
   './',
   './index.html',
@@ -9,7 +9,7 @@ const APP_SHELL = [
   './respond.html',
   './respond-v2.html?v=3',
   './manifest.webmanifest?v=10',
-  './icon.svg'
+  './icon.svg?v=2'
 ];
 
 self.addEventListener('install', event => {

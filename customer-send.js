@@ -1,7 +1,7 @@
 (function(){
 'use strict';
 var EMAILJS_SERVICE_ID='service_wmpq4cq';
-var EMAILJS_CUSTOMER_TEMPLATE_ID='REPLACE_CUSTOMER_TEMPLATE_ID';
+var EMAILJS_CUSTOMER_TEMPLATE_ID='template_9kx2gib';
 var EMAILJS_PUBLIC_KEY='dyBjG4ATAJjl1LYSQ';
 var RESPONSE_BASE='./respond-v2.html?data=';
 var SUPABASE_FUNCTION_URL='https://cychngcvhgtfuahavlqq.supabase.co/functions/v1/create-quote-pdf';
@@ -48,7 +48,7 @@ function createSecurePdf(payload){var acceptUrl=responseUrl(payload,'Accepted'),
 function addButton(){var actions=$('editQuoteBtn')&&$('editQuoteBtn').parentElement;if(!actions||$('sendCustomerBtn'))return;var b=document.createElement('button');b.type='button';b.className='primary';b.id='sendCustomerBtn';b.textContent='📧 Send Quote to Customer';actions.appendChild(b);b.addEventListener('click',send)}
 function statusButton(text){var b=$('sendCustomerBtn');if(b){b.disabled=true;b.textContent=text}}
 function send(){
-  var q=getCurrentQuote();if(!q){alert('Please open a saved quote first.');return}if(!q.customerEmail){alert('This quote needs the customer email address before it can be sent.');return}if(EMAILJS_CUSTOMER_TEMPLATE_ID==='REPLACE_CUSTOMER_TEMPLATE_ID'){alert('Customer email template is not connected yet. Create the customer template in EmailJS, then add its Template ID to customer-send.js.');return}if(!window.emailjs){alert('Email service is still loading. Please try again.');return}
+  var q=getCurrentQuote();if(!q){alert('Please open a saved quote first.');return}if(!q.customerEmail){alert('This quote needs the customer email address before it can be sent.');return}if(!window.emailjs){alert('Email service is still loading. Please try again.');return}
   var token=makeToken(),d=buildPayload(q,token);statusButton('⏳ Preparing PDF…');
   createSecurePdf(d).then(function(pdfUrl){statusButton('⏳ Sending email…');var params={quote_number:d.quote_number,business_name:d.business_name,business_email:d.business_email,business_phone:d.business_phone,customer_name:d.customer_name,customer_phone:d.customer_phone,customer_email:d.customer_email,customer_address:d.customer_address,job_description:d.job_description,item_details:d.item_details,materials_details:d.materials_details,labour_details:d.labour_details,subtotal:d.subtotal,discount:d.discount,gst:d.gst,quote_total:d.quote_total,total:d.total,quote_status:'Pending',response_link:responseUrl(d,'Accepted'),quote_pdf:pdfUrl};return emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_CUSTOMER_TEMPLATE_ID,params)}).then(function(){statusButton('✓ Quote Sent');setTimeout(function(){var b=$('sendCustomerBtn');if(b){b.disabled=false;b.textContent='📧 Send Quote to Customer'}},2500);alert('Quote '+q.number+' was emailed to '+q.customerEmail+'. The email contains a secure PDF link with Accept and Decline buttons.')}).catch(function(err){console.error(err);statusButton('⚠️ Send failed');setTimeout(function(){var b=$('sendCustomerBtn');if(b){b.disabled=false;b.textContent='📧 Send Quote to Customer'}},2500);alert('We could not send the quote. '+(err&&err.message?err.message:'Please check your EmailJS customer template and try again.'))})
 }

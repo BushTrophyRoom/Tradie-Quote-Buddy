@@ -1,8 +1,8 @@
-const CACHE_NAME = 'tradie-quote-buddy-v39';
+const CACHE_NAME = 'tradie-quote-buddy-v40';
 const APP_SHELL = [
   './', './index.html', './app-v7.js?v=10', './dashboard-layout.js?v=8',
-  './response-actions.js?v=13', './quote-terms.js?v=2', './customer-send.js?v=5', './invoice.js?v=3', './status-sync.js?v=1', './respond.html',
-  './respond-v2.html?v=3', './manifest.webmanifest?v=10', './icon.svg?v=2'
+  './response-actions.js?v=13', './quote-terms.js?v=2', './customer-send.js?v=6', './invoice.js?v=3', './status-sync.js?v=1', './respond.html',
+  './respond-v2.html?v=3', './quote-view.html', './manifest.webmanifest?v=10', './icon.svg?v=2'
 ];
 self.addEventListener('install', event => { event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', event => { event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))).then(() => self.clients.claim())); });

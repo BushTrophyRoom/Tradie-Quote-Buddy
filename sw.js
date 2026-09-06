@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tradie-quote-buddy-v18';
+const CACHE_NAME = 'tradie-quote-buddy-v19';
 const APP_SHELL = [
   './',
   './index.html',
@@ -6,7 +6,7 @@ const APP_SHELL = [
   './response-actions.js?v=11',
   './quote-terms.js?v=2',
   './respond.html',
-  './respond-v2.html',
+  './respond-v2.html?v=2',
   './manifest.webmanifest?v=9',
   './icon.svg'
 ];

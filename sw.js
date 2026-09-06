@@ -1,7 +1,7 @@
-const CACHE_NAME = 'tradie-quote-buddy-v44';
+const CACHE_NAME = 'tradie-quote-buddy-v45';
 const APP_SHELL = [
   './', './index.html', './app-v7.js?v=10', './dashboard-layout.js?v=8',
-  './response-actions.js?v=13', './quote-terms.js?v=2', './customer-send.js?v=8', './invoice.js?v=3', './status-sync.js?v=2', './respond.html',
+  './response-actions.js?v=13', './quote-terms.js?v=2', './customer-send.js?v=8', './invoice.js?v=4', './status-sync.js?v=2', './respond.html',
   './respond-v2.html?v=6', './quote-view.html', './manifest.webmanifest?v=10', './icon.svg?v=2'
 ];
 self.addEventListener('install', event => { event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting())); });

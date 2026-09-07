@@ -12,10 +12,9 @@ function wireSquare(){var b=$('connectSquareBtn');if(!b||b.dataset.wired)return;
 function wire(){addFields();addSquare();load();wireSquare();var form=$('settingsForm');if(!form)return;form.addEventListener('submit',function(){var s=read();s.bankName=$('bankName')?$('bankName').value.trim():'';s.bankAccountName=$('bankAccountName')?$('bankAccountName').value.trim():'';s.bankBsb=$('bankBsb')?$('bankBsb').value.trim():'';s.bankAccountNumber=$('bankAccountNumber')?$('bankAccountNumber').value.trim():'';s.bankPayId=$('bankPayId')?$('bankPayId').value.trim():'';s.bankReference=$('bankReference')?$('bankReference').value.trim():'Use invoice number as reference';save(s)});}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',wire);else wire();
 })();
-
 (function(){
 'use strict';
-var src='./invoice-delete.js?v=1';
+var src='./invoice-delete.js?v=2';
 function load(){if(document.querySelector('script[data-tqb-invoice-delete]'))return;var s=document.createElement('script');s.src=src;s.defer=true;s.setAttribute('data-tqb-invoice-delete','1');document.head.appendChild(s)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load);else load();
 })();

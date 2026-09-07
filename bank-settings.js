@@ -14,7 +14,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 (function(){
 'use strict';
-var src='./invoice-delete.js?v=3';
+var src='./invoice-delete.js?v=4';
 function load(){if(document.querySelector('script[data-tqb-invoice-delete]'))return;var s=document.createElement('script');s.src=src;s.defer=true;s.setAttribute('data-tqb-invoice-delete','1');document.head.appendChild(s)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load);else load();
 })();

@@ -10,6 +10,7 @@ function addDetailButton(){var view=document.getElementById('invoiceView');if(!v
 function removeListButtons(){var buttons=document.querySelectorAll('#invoiceList .tqb-delete-invoice, #invoiceList .invoice-delete-btn, #invoiceList #deleteInvoiceBtn');for(var i=0;i<buttons.length;i++)buttons[i].remove()}
 function ensureButtons(){style();removeBackButtons();removeListButtons();addDetailButton()}
 function loadAutoInvoice(){if(document.querySelector('script[data-accepted-invoice]'))return;var s=document.createElement('script');s.src='./accepted-quote-invoice.js?v=1';s.defer=true;s.setAttribute('data-accepted-invoice','1');document.head.appendChild(s)}
-function start(){loadAutoInvoice();if(window.MutationObserver){var o=new MutationObserver(function(){window.requestAnimationFrame(ensureButtons)});o.observe(document.body,{childList:true,subtree:true})}ensureButtons();setInterval(ensureButtons,500)}
+function loadDashboardStats(){if(document.querySelector('script[data-dashboard-invoice-stats]'))return;var s=document.createElement('script');s.src='./dashboard-invoice-stats.js?v=1';s.defer=true;s.setAttribute('data-dashboard-invoice-stats','1');document.head.appendChild(s)}
+function start(){loadAutoInvoice();loadDashboardStats();if(window.MutationObserver){var o=new MutationObserver(function(){window.requestAnimationFrame(ensureButtons)});o.observe(document.body,{childList:true,subtree:true})}ensureButtons();setInterval(ensureButtons,500)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();

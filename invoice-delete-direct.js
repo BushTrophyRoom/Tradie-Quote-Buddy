@@ -25,6 +25,18 @@ function deleteInvoice(id){
   var refresh=document.getElementById('invoiceRefresh');
   if(refresh)refresh.click();
 }
+function goHomeFromInvoices(e){
+  var b=e.target.closest&&e.target.closest('#invoices .section-head .back-btn');
+  if(!b)return;
+  e.preventDefault();
+  e.stopPropagation();
+  document.querySelectorAll('.screen').forEach(function(x){x.classList.toggle('active',x.id==='dashboard')});
+  document.querySelectorAll('.nav').forEach(function(x){x.classList.toggle('active',x.getAttribute('data-screen')==='dashboard')});
+  var view=document.getElementById('invoiceView'),list=document.getElementById('invoiceList');
+  if(view)view.innerHTML='';
+  if(list)list.style.display='grid';
+  window.scrollTo(0,0);
+}
 function style(){
   if(document.getElementById('tqb-direct-delete-style'))return;
   var s=document.createElement('style');s.id='tqb-direct-delete-style';
@@ -54,6 +66,7 @@ function loadAutoInvoice(){
 }
 function start(){
   loadAutoInvoice();
+  document.addEventListener('click',goHomeFromInvoices,true);
   if(window.MutationObserver){var o=new MutationObserver(function(){window.requestAnimationFrame(ensureButtons)});o.observe(document.body,{childList:true,subtree:true})}
   ensureButtons();
   setInterval(ensureButtons,500);

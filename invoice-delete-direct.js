@@ -25,22 +25,10 @@ function deleteInvoice(id){
   var refresh=document.getElementById('invoiceRefresh');
   if(refresh)refresh.click();
 }
-function goHomeFromInvoices(e){
-  var b=e.target.closest&&e.target.closest('#invoices .section-head .back-btn');
-  if(!b)return;
-  e.preventDefault();
-  e.stopPropagation();
-  document.querySelectorAll('.screen').forEach(function(x){x.classList.toggle('active',x.id==='dashboard')});
-  document.querySelectorAll('.nav').forEach(function(x){x.classList.toggle('active',x.getAttribute('data-screen')==='dashboard')});
-  var view=document.getElementById('invoiceView'),list=document.getElementById('invoiceList');
-  if(view)view.innerHTML='';
-  if(list)list.style.display='grid';
-  window.scrollTo(0,0);
-}
 function style(){
   if(document.getElementById('tqb-direct-delete-style'))return;
   var s=document.createElement('style');s.id='tqb-direct-delete-style';
-  s.textContent='.tqb-delete-invoice{border:0;border-radius:12px;padding:13px 17px;background:#e53935;color:#fff;font-weight:800;cursor:pointer;font-size:15px;min-height:46px}.tqb-delete-invoice:hover{filter:brightness(.95)}';
+  s.textContent='.tqb-delete-invoice{border:0;border-radius:12px;padding:13px 17px;background:#e53935;color:#fff;font-weight:800;cursor:pointer;font-size:15px;min-height:46px}.tqb-delete-invoice:hover{filter:brightness(.95)}#invoices>.section-head>.back-btn{display:none!important}';
   document.head.appendChild(s);
 }
 function addDetailButton(){
@@ -66,7 +54,6 @@ function loadAutoInvoice(){
 }
 function start(){
   loadAutoInvoice();
-  document.addEventListener('click',goHomeFromInvoices,true);
   if(window.MutationObserver){var o=new MutationObserver(function(){window.requestAnimationFrame(ensureButtons)});o.observe(document.body,{childList:true,subtree:true})}
   ensureButtons();
   setInterval(ensureButtons,500);

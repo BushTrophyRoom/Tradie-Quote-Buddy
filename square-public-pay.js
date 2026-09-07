@@ -1,0 +1,6 @@
+(function(){
+'use strict';
+function decode(v){try{if(!v)return null;v=decodeURIComponent(v);var p=v.replace(/-/g,'+').replace(/_/g,'/');while(p.length%4)p+='=';var bin=atob(p),bytes=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);return JSON.parse(new TextDecoder('utf-8').decode(bytes))}catch(e){return null}}
+function start(){var raw=new URLSearchParams(location.search).get('data')||'',d=decode(raw);if(!d||!d.squareCheckoutUrl||String(d.status||'').toLowerCase()==='paid')return;var payment=document.querySelector('.payment');if(!payment||document.getElementById('squarePayNow'))return;var box=document.createElement('div');box.style.cssText='margin-top:14px;padding:15px;border-radius:11px;background:#fff;border:2px solid #ffb000';box.innerHTML='<b>Card payment</b><div class="note" style="margin-top:7px">Pay securely online through Square.</div><a id="squarePayNow" class="paynow" href="'+String(d.squareCheckoutUrl).replace(/"/g,'&quot;')+'" target="_blank" rel="noopener">💳 Pay by Card</a>';var bank=document.getElementById('bankTransfer');if(bank)payment.insertBefore(box,bank);else payment.appendChild(box)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+})();

@@ -25,10 +25,14 @@ function deleteInvoice(id){
   var refresh=document.getElementById('invoiceRefresh');
   if(refresh)refresh.click();
 }
+function removeBackButtons(){
+  var buttons=document.querySelectorAll('.back-btn');
+  for(var i=0;i<buttons.length;i++)buttons[i].remove();
+}
 function style(){
   if(document.getElementById('tqb-direct-delete-style'))return;
   var s=document.createElement('style');s.id='tqb-direct-delete-style';
-  s.textContent='.tqb-delete-invoice{border:0;border-radius:12px;padding:13px 17px;background:#e53935;color:#fff;font-weight:800;cursor:pointer;font-size:15px;min-height:46px}.tqb-delete-invoice:hover{filter:brightness(.95)}#invoices>.section-head>.back-btn{display:none!important}';
+  s.textContent='.tqb-delete-invoice{border:0;border-radius:12px;padding:13px 17px;background:#e53935;color:#fff;font-weight:800;cursor:pointer;font-size:15px;min-height:46px}.tqb-delete-invoice:hover{filter:brightness(.95)}';
   document.head.appendChild(s);
 }
 function addDetailButton(){
@@ -47,7 +51,7 @@ function removeListButtons(){
   var buttons=document.querySelectorAll('#invoiceList .tqb-delete-invoice, #invoiceList .invoice-delete-btn, #invoiceList #deleteInvoiceBtn');
   for(var i=0;i<buttons.length;i++)buttons[i].remove();
 }
-function ensureButtons(){style();removeListButtons();addDetailButton()}
+function ensureButtons(){style();removeBackButtons();removeListButtons();addDetailButton()}
 function loadAutoInvoice(){
   if(document.querySelector('script[data-accepted-invoice]'))return;
   var s=document.createElement('script');s.src='./accepted-quote-invoice.js?v=1';s.defer=true;s.setAttribute('data-accepted-invoice','1');document.head.appendChild(s);

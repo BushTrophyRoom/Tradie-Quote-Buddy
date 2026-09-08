@@ -3,56 +3,16 @@
 if(window.__dustyNavFinalLoaded)return;
 window.__dustyNavFinalLoaded=true;
 function $(id){return document.getElementById(id)}
-function active(id){
- document.querySelectorAll('.screen').forEach(function(s){s.classList.toggle('active',s.id===id)});
- document.querySelectorAll('.nav').forEach(function(n){n.classList.toggle('active',n.getAttribute('data-screen')===id)});
- window.scrollTo(0,0);
-}
+function active(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.toggle('active',s.id===id)});document.querySelectorAll('.nav').forEach(function(n){n.classList.toggle('active',n.getAttribute('data-screen')===id)});window.scrollTo(0,0)}
 function esc(v){return String(v==null?'':v).replace(/[&<>\"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'})[c]})}
 function money(v){return new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD'}).format(Number(v)||0)}
 function read(k){try{var x=JSON.parse(localStorage.getItem(k)||'[]');return Array.isArray(x)?x:[]}catch(e){return[]}}
-function ensureScreen(id,title,sub){
- var s=$(id);
- if(!s){var m=document.querySelector('main');if(!m)return null;s=document.createElement('section');s.id=id;s.className='screen';m.appendChild(s)}
- if(!s.dataset.rescueBuilt){s.dataset.rescueBuilt='1';s.innerHTML='<div style="max-width:1120px;margin:0 auto"><div style="display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:22px"><div><p class="eyebrow" style="margin:0 0 5px">DUSTYBOOTS</p><h1 style="margin:0;font-size:30px">'+title+'</h1><p style="margin:6px 0 0;color:#69717c">'+sub+'</p></div></div><div id="'+id+'RescueContent"></div></div>'}
- return s
-}
-function invoiceFallback(){
- var s=ensureScreen('invoices','Invoices','Create, track and manage your customer invoices.');if(!s)return;
- var list=read('tqb_invoices_v1'),c=$('invoicesRescueContent');
- c.innerHTML='<div style="background:#fff;border:1px solid #e4e8ed;border-radius:15px;padding:20px;box-shadow:0 2px 8px #0000000b"><div style="display:grid;gap:10px">'+(list.length?list.map(function(x){return '<div style="border:1px solid #edf0f3;border-radius:12px;padding:15px;display:flex;justify-content:space-between;gap:15px;align-items:center"><div><b>'+esc(x.number||'Invoice')+'</b><div style="color:#69717c;font-size:12px;margin-top:4px">'+esc(x.customerName||'Unnamed customer')+' · '+esc(x.invoiceDate||x.date||'')+'</div><div style="font-size:12px;margin-top:5px">'+esc(x.status||'Unpaid')+'</div></div><b>'+money(x.total)+'</b></div>'}).join(''):'<div style="text-align:center;padding:45px 20px;color:#69717c">No invoices yet.</div>')+'</div></div>';
- active('invoices');
-}
-function customerFallback(){
- var s=ensureScreen('customers','Customers','Manage your customers, contact details and account history.');if(!s)return;
- var list=read('tqb_customers_v1'),q=read('tqb_quotes_v6'),inv=read('tqb_invoices_v1),c=$('customersRescueContent');
- c.innerHTML='<div style="background:#fff;border:1px solid #e4e8ed;border-radius:15px;padding:20px"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px">'+(list.length?list.map(function(x){return '<div style="border:1px solid #edf0f3;border-radius:12px;padding:16px"><b>'+esc(x.name||'Customer')+'</b><div style="font-size:12px;color:#69717c;margin-top:5px">'+esc(x.phone||x.email||'No contact details')+'</div></div>'}).join(''):'<div style="text-align:center;padding:45px 20px;color:#69717c">No customers yet. Customers will appear here from quotes and invoices.</div>')+'</div></div>';
- active('customers');
-}
-function go(id){
- try{
-  if(id==='customers'&&window.tqbShowCustomers){window.tqbShowCustomers();return}
-  if(id==='invoices'&&window.tqbActivateInvoices){window.tqbActivateInvoices();return}
-  if((id==='itemsServices'||id==='payments'||id==='reports')&&window.tqbOpenBusiness){window.tqbOpenBusiness(id);return}
- }catch(e){console.error('DustyBoots navigation',e)}
- if(id==='invoices'){invoiceFallback();return}
- if(id==='customers'){customerFallback();return}
- if(id==='itemsServices'||id==='payments'||id==='reports'){
-  if(window.tqbOpenBusiness){try{window.tqbOpenBusiness(id);return}catch(e){}}
- }
- var s=$(id);if(s){active(id);var r=$(id+'Refresh');if(r){try{r.click()}catch(e){}}}
-}
-function handle(e){
- var b=e.target.closest&&e.target.closest('.bottom-nav .nav[data-screen]');if(!b)return;
- var id=b.getAttribute('data-screen');
- if(['dashboard','quoteForm','saved','settings','customers','invoices','itemsServices','payments','reports'].indexOf(id)<0)return;
- e.preventDefault();e.stopImmediatePropagation();go(id);
-}
+function ensureScreen(id,title,sub){var s=$(id);if(!s){var m=document.querySelector('main');if(!m)return null;s=document.createElement('section');s.id=id;s.className='screen';m.appendChild(s)}if(!s.dataset.rescueBuilt){s.dataset.rescueBuilt='1';s.innerHTML='<div style="max-width:1120px;margin:0 auto"><div style="display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:22px"><div><p class="eyebrow" style="margin:0 0 5px">DUSTYBOOTS</p><h1 style="margin:0;font-size:30px">'+title+'</h1><p style="margin:6px 0 0;color:#69717c">'+sub+'</p></div></div><div id="'+id+'RescueContent"></div></div>'}return s}
+function invoiceFallback(){var s=ensureScreen('invoices','Invoices','Create, track and manage your customer invoices.');if(!s)return;var list=read('tqb_invoices_v1'),c=$('invoicesRescueContent');c.innerHTML='<div style="background:#fff;border:1px solid #e4e8ed;border-radius:15px;padding:20px;box-shadow:0 2px 8px #0000000b"><div style="display:grid;gap:10px">'+(list.length?list.map(function(x){return '<div style="border:1px solid #edf0f3;border-radius:12px;padding:15px;display:flex;justify-content:space-between;gap:15px;align-items:center"><div><b>'+esc(x.number||'Invoice')+'</b><div style="color:#69717c;font-size:12px;margin-top:4px">'+esc(x.customerName||'Unnamed customer')+' · '+esc(x.invoiceDate||x.date||'')+'</div><div style="font-size:12px;margin-top:5px">'+esc(x.status||'Unpaid')+'</div></div><b>'+money(x.total)+'</b></div>'}).join(''):'<div style="text-align:center;padding:45px 20px;color:#69717c">No invoices yet.</div>')+'</div></div>';active('invoices')}
+function customerFallback(){var s=ensureScreen('customers','Customers','Manage your customers, contact details and account history.');if(!s)return;var list=read('tqb_customers_v1'),c=$('customersRescueContent');c.innerHTML='<div style="background:#fff;border:1px solid #e4e8ed;border-radius:15px;padding:20px"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px">'+(list.length?list.map(function(x){return '<div style="border:1px solid #edf0f3;border-radius:12px;padding:16px"><b>'+esc(x.name||'Customer')+'</b><div style="font-size:12px;color:#69717c;margin-top:5px">'+esc(x.phone||x.email||'No contact details')+'</div></div>'}).join(''):'<div style="text-align:center;padding:45px 20px;color:#69717c">No customers yet. Customers will appear here from quotes and invoices.</div>')+'</div></div>';active('customers')}
+function go(id){try{if(id==='customers'&&window.tqbShowCustomers){window.tqbShowCustomers();return}if(id==='invoices'&&window.tqbActivateInvoices){window.tqbActivateInvoices();return}if((id==='itemsServices'||id==='payments'||id==='reports')&&window.tqbOpenBusiness){window.tqbOpenBusiness(id);return}}catch(e){console.error('DustyBoots navigation',e)}if(id==='invoices'){invoiceFallback();return}if(id==='customers'){customerFallback();return}if(id==='itemsServices'||id==='payments'||id==='reports'){if(window.tqbOpenBusiness){try{window.tqbOpenBusiness(id);return}catch(e){}}}var s=$(id);if(s){active(id);var r=$(id+'Refresh');if(r){try{r.click()}catch(e){}}}}
+function handle(e){var b=e.target.closest&&e.target.closest('.bottom-nav .nav[data-screen]');if(!b)return;var id=b.getAttribute('data-screen');if(['dashboard','quoteForm','saved','settings','customers','invoices','itemsServices','payments','reports'].indexOf(id)<0)return;e.preventDefault();e.stopImmediatePropagation();go(id)}
 function order(){var n=document.querySelector('.bottom-nav');if(!n)return;['dashboard','quoteForm','saved','invoices','customers','itemsServices','payments','reports','settings'].forEach(function(id){var b=n.querySelector('[data-screen="'+id+'"]');if(b)n.appendChild(b)})}
-function init(){
- order();
- document.addEventListener('click',handle,true);
- setTimeout(order,100);setTimeout(order,500);setTimeout(order,1200);
-}
+function init(){order();document.addEventListener('click',handle,true);setTimeout(order,100);setTimeout(order,500);setTimeout(order,1200)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();

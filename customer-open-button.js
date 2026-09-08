@@ -1,44 +1,22 @@
 (function(){
 'use strict';
-function addButtons(){
-  var list=document.getElementById('customerList');
-  if(!list)return;
-  list.querySelectorAll('.customers-v2-card').forEach(function(card){
-    if(card.querySelector('.customer-view-btn'))return;
-    var id=card.getAttribute('data-customer-id');
-    if(!id)return;
-    var btn=document.createElement('button');
-    btn.type='button';
-    btn.className='customer-view-btn';
-    btn.textContent='View customer →';
-    btn.style.cssText='display:block;width:100%;margin-top:14px;padding:10px 12px;border:1px solid #dfe4e9;border-radius:9px;background:#f7f9fb;color:#111;font-weight:800;cursor:pointer;position:relative;z-index:9999;pointer-events:auto';
-    btn.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();open(id)},false);
-    btn.addEventListener('pointerup',function(e){e.preventDefault();e.stopPropagation();open(id)},false);
-    card.appendChild(btn);
-  });
+var C='tqb_customers_v1',Q='tqb_quotes_v6',I='tqb_invoices_v1';
+function read(k){try{var x=JSON.parse(localStorage.getItem(k)||'[]');return Array.isArray(x)?x:[]}catch(e){return[]}}
+function norm(v){return String(v||'').trim().toLowerCase().replace(/\s+/g,' ')}
+function ident(x){return norm(x.email)||norm(x.phone)||norm(x.name)}
+function esc(v){return String(v==null?'':v).replace(/[&<>\"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'})[c]})}
+function money(v){return new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD'}).format(Number(v)||0)}
+function open(c){
+ var qs=read(Q).filter(function(q){return ident({name:q.customerName,email:q.customerEmail,phone:q.customerPhone})===ident(c)}),ins=read(I).filter(function(i){return ident({name:i.customerName,email:i.customerEmail,phone:i.customerPhone})===ident(c)});
+ var total=ins.reduce(function(a,x){return a+(Number(x.total)||0)},0),paid=ins.filter(function(x){return String(x.status||'').toLowerCase()==='paid'}).reduce(function(a,x){return a+(Number(x.total)||0)},0);
+ var rows=qs.map(function(x){return{type:'Quote',number:x.number||'Quote',date:x.date||x.createdAt,total:x.total,status:x.status||x.quoteStatus||'Pending'}}).concat(ins.map(function(x){return{type:'Invoice',number:x.number||'Invoice',date:x.invoiceDate||x.date,total:x.total,status:x.status||'Unpaid'}}));
+ var d=document.getElementById('customerDetail');if(!d)return;d.dataset.customerId=c.id||'';
+ d.innerHTML='<div class="customers-v2-detail"><div class="customers-v2-detail-head"><div><h2>'+esc(c.name)+'</h2><div>'+esc(c.email||'No email')+'</div><div>'+esc(c.phone||'No phone')+'</div><div>'+esc(c.address||'No address')+'</div></div><div class="customers-v2-detail-actions"><button class="secondary" id="customerNewQuote">＋ New Quote</button><button class="secondary" id="customerEdit">✏️ Edit</button><button class="danger" id="customerDelete">🗑 Delete</button></div></div><div class="customers-v2-stat-grid"><div class="customers-v2-stat"><span>Total invoiced</span><b>'+money(total)+'</b></div><div class="customers-v2-stat"><span>Total paid</span><b>'+money(paid)+'</b></div><div class="customers-v2-stat"><span>Outstanding</span><b>'+money(Math.max(0,total-paid))+'</b></div></div><h3>Account history</h3><div class="customers-v2-history">'+(rows.length?rows.map(function(r){return '<div class="customers-v2-history-row"><div><b>'+esc(r.type)+' '+esc(r.number)+'</b><span class="customers-v2-badge">'+esc(r.status)+'</span><small>'+esc(r.date||'')+'</small></div><b>'+money(r.total)+'</b></div>'}).join(''):'<p class="storage-note">No quotes or invoices yet.</p>')+'</div></div>';
+ var del=document.getElementById('customerDelete');if(del)del.onclick=function(){if(!confirm('Delete '+c.name+' from your customer list? Existing quotes and invoices will not be deleted.'))return;localStorage.setItem(C,JSON.stringify(read(C).filter(function(x){return String(x.id)!==String(c.id)})));if(window.tqbShowCustomers)window.tqbShowCustomers()};
+ var edit=document.getElementById('customerEdit');if(edit)edit.onclick=function(){var b=document.querySelector('[data-screen="customers"]');if(b&&window.tqbShowCustomers)window.tqbShowCustomers();setTimeout(function(){var f=document.getElementById('customerDetail');if(f&&window.tqbCustomerEdit)window.tqbCustomerEdit(c)},50)};
+ var nq=document.getElementById('customerNewQuote');if(nq)nq.onclick=function(){var b=document.querySelector('[data-screen="quoteForm"]');if(b)b.click();setTimeout(function(){[['customerName',c.name],['customerPhone',c.phone],['customerEmail',c.email],['customerAddress',c.address]].forEach(function(p){var el=document.getElementById(p[0]);if(el){el.value=p[1]||'';el.dispatchEvent(new Event('input',{bubbles:true}))}})},150)};
 }
-function open(id){
-  var list=document.getElementById('customerList');
-  if(!list)return;
-  var card=Array.prototype.find.call(list.querySelectorAll('.customers-v2-card'),function(x){return x.getAttribute('data-customer-id')===String(id)});
-  if(!card)return;
-  var old=card.onclick;
-  if(typeof old==='function'){old.call(card);return;}
-  if(typeof window.tqbShowCustomer==='function'){window.tqbShowCustomer(id);return;}
-  if(typeof window.tqbShowCustomers==='function')window.tqbShowCustomers();
-}
-function actionFix(e){
-  var t=e.target&&e.target.closest?e.target.closest('#customerEdit,#customerDelete,#customerNewQuote'):null;
-  if(!t)return;
-  e.preventDefault();
-  e.stopImmediatePropagation();
-  if(typeof t.onclick==='function')t.onclick.call(t,e);
-}
-function start(){
-  addButtons();
-  document.addEventListener('click',actionFix,true);
-  document.addEventListener('pointerup',actionFix,true);
-  setInterval(addButtons,1000);
-}
+function addButtons(){var list=document.getElementById('customerList');if(!list)return;list.querySelectorAll('.customers-v2-card').forEach(function(card){if(card.querySelector('.customer-view-btn'))return;var btn=document.createElement('button');btn.type='button';btn.className='customer-view-btn';btn.textContent='View customer →';btn.style.cssText='display:block;width:100%;margin-top:14px;padding:10px 12px;border:1px solid #dfe4e9;border-radius:9px;background:#f7f9fb;color:#111;font-weight:800;cursor:pointer;position:relative;z-index:99999;pointer-events:auto';btn.onclick=function(e){e.preventDefault();e.stopPropagation();var name=card.querySelector('.customers-v2-name');var c=read(C).find(function(x){return norm(x.name)===norm(name&&name.textContent)});if(c)open(c)};card.appendChild(btn)})}
+function start(){addButtons();document.addEventListener('click',function(e){var card=e.target&&e.target.closest?e.target.closest('.customers-v2-card'):null;if(!card||e.target.closest('.customer-view-btn'))return;var name=card.querySelector('.customers-v2-name');var c=read(C).find(function(x){return norm(x.name)===norm(name&&name.textContent)});if(c){e.preventDefault();e.stopImmediatePropagation();open(c)}},true);setInterval(addButtons,1000)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();

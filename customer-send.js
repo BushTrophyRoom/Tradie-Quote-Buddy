@@ -20,3 +20,4 @@ function send(){var q=currentQuote();if(!q)return alert('Please open a saved quo
 function start(){if(!window.emailjs)return;emailjs.init({publicKey:PUBLIC_KEY});addButton();var p=$('quotePreview');if(p)new MutationObserver(addButton).observe(p,{childList:true,subtree:true});document.addEventListener('click',function(e){if(!(e.target.closest&&e.target.closest('#sendCustomerBtn')))setTimeout(addButton,100)})}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();
+(function(){var s=document.createElement('script');s.src='./dustyboots-name.js?v=1';s.defer=true;document.head.appendChild(s)})();

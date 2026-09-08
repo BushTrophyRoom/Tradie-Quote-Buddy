@@ -1,13 +1,15 @@
 (function(){
 'use strict';
 function apply(){
-  document.title='DustyBoots';
+  document.title='DustyBoots Invoicing';
   var m=document.querySelector('meta[name="apple-mobile-web-app-title"]');
   if(m)m.setAttribute('content','DustyBoots');
   var brand=document.querySelector('.topbar .brand strong');
-  if(brand)brand.textContent='DustyBoots';
+  if(brand)brand.textContent='DustyBoots Invoicing';
+  var tagline=document.querySelector('.topbar .brand span');
+  if(tagline)tagline.textContent='Invoicing made simple';
   document.querySelectorAll('body *').forEach(function(el){
-    if(el.children.length===0 && el.textContent.trim()==='Tradie Quote Buddy')el.textContent='DustyBoots';
+    if(el.children.length===0 && el.textContent.trim()==='Tradie Quote Buddy')el.textContent='DustyBoots Invoicing';
     if(el.children.length===0 && el.textContent.trim()==='Tradie Quote Buddy Pro')el.textContent='DustyBoots Pro';
   });
 }

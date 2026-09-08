@@ -23,4 +23,5 @@ var recent=document.getElementById('recentQuotes'),panel=recent&&recent.closest(
 function runDash(){if(document.getElementById('dashboard')&&document.getElementById('dashboard').classList.contains('active')){var old=document.getElementById('tqb-dashboard-bottom');if(old)old.remove();dashboardEnhancements()}}setTimeout(runDash,200);setTimeout(runDash,1000);setInterval(runDash,3000);
 var secLoader=document.createElement('script');secLoader.src='./business-sections.js?v=4';secLoader.defer=true;document.head.appendChild(secLoader);
 var itemLoader=document.createElement('script');itemLoader.src='./quote-item-dropdown.js?v=4';itemLoader.defer=true;document.head.appendChild(itemLoader);
+var colorLoader=document.createElement('script');colorLoader.src='./sidebar-colors.js?v=1';colorLoader.defer=true;document.head.appendChild(colorLoader);
 })();

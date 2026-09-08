@@ -1,7 +1,7 @@
 {
-  "name": "DustyBoots",
+  "name": "DustyBoots Invoicing",
   "short_name": "DustyBoots",
-  "description": "Fast, professional quoting for Australian tradies.",
+  "description": "Simple, professional invoicing and quoting for Australian tradies.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

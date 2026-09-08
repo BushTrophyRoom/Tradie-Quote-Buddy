@@ -9,11 +9,11 @@ function apply(){
   var tagline=document.querySelector('.topbar .brand span');
   if(tagline)tagline.textContent='Invoicing made simple';
   document.querySelectorAll('img[src*="icon.svg"]').forEach(function(img){
-    img.src='./icon.svg?v=3';
+    img.src='./icon.svg?v=4';
     img.alt='DustyBoots Invoicing logo';
   });
   document.querySelectorAll('link[rel="icon"]').forEach(function(link){
-    link.href='./icon.svg?v=3';
+    link.href='./icon.svg?v=4';
   });
   document.querySelectorAll('body *').forEach(function(el){
     if(el.children.length===0 && el.textContent.trim()==='Tradie Quote Buddy')el.textContent='DustyBoots Invoicing';

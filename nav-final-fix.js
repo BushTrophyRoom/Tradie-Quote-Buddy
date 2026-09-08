@@ -1,5 +1,7 @@
 (function(){
 'use strict';
+if(window.__dustyNavFinalLoaded)return;
+window.__dustyNavFinalLoaded=true;
 function $(id){return document.getElementById(id)}
 function setActive(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.toggle('active',s.id===id)});document.querySelectorAll('.nav').forEach(function(n){n.classList.toggle('active',n.getAttribute('data-screen')===id)});window.scrollTo(0,0)}
 function invoiceNav(){if(window.tqbActivateInvoices){window.tqbActivateInvoices();return}var s=$('invoices');if(!s)return;setActive('invoices');var r=$('invoiceRefresh');if(r)r.click()}

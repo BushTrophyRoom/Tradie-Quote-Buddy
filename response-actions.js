@@ -1,10 +1,12 @@
 (function () {
   'use strict';
-  var STYLE_ID='customer-response-styles-v7', ACTION_ID='customer-response-actions-v7';
+  var STYLE_ID='customer-response-styles-v8', ACTION_ID='customer-response-actions-v8';
   var RESPONSE_BASE='https://bushtrophyroom.github.io/Tradie-Quote-Buddy/respond-v2.html?data=';
   function $(id){return document.getElementById(id);}
   function addStyles(){if($(STYLE_ID))return;var style=document.createElement('style');style.id=STYLE_ID;style.textContent='.customer-response{margin-top:24px;padding:18px;border:1px solid #d1d5db;border-radius:14px;background:#fafafa;text-align:center}.customer-response-title{font-size:16px;font-weight:800;margin-bottom:6px}.customer-response-text{font-size:12px;color:#555;line-height:1.5;margin-bottom:14px}.customer-response-actions{display:flex;gap:10px;justify-content:center}.customer-response-actions a{display:inline-block;flex:1;max-width:230px;padding:13px 16px;border-radius:10px;text-decoration:none;font-weight:800;font-size:14px}.response-accept{background:#16803c;color:#fff}.response-decline{background:#e53935;color:#fff}.customer-response-note{margin-top:10px;font-size:11px;color:#777}@media(max-width:430px){.customer-response-actions{flex-direction:column}.customer-response-actions a{max-width:none}}';document.head.appendChild(style);}
   function encodeData(data){var json=JSON.stringify(data),base64=btoa(unescape(encodeURIComponent(json)));return base64.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+  function settings(){try{var raw=localStorage.getItem('tqb_settings_v6'),s=raw?JSON.parse(raw):{};return s&&typeof s==='object'?s:{};}catch(e){return{};}}
+  function businessName(){var name=String(settings().businessName||'').trim();return !name||name.toLowerCase()==='tradie quote buddy'?'DustyBoots Invoicing':name;}
   function extractCustomer(block){var result={name:'',phone:'',email:'',address:''};if(!block)return result;var divs=block.querySelectorAll(':scope > div');if(divs[0])result.name=divs[0].textContent.trim();var leftovers=[];for(var i=1;i<divs.length;i++){var text=divs[i].textContent.trim();if(!text)continue;if(!result.email&&/@/.test(text)){result.email=text;continue;}if(!result.phone&&/^[+()\d][\d\s().-]{5,}$/.test(text)){result.phone=text;continue;}leftovers.push(text);}result.address=leftovers.join('\n');return result;}
   function getTextAfterLabel(element,label){if(!element)return '';var text=(element.innerText||element.textContent||'').trim();var re=new RegExp('^\\s*'+label+'\\s*','i');return text.replace(re,'').trim();}
   function money(value){return new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD'}).format(Number(value)||0);}
@@ -16,27 +18,23 @@
     var totalEl=preview.querySelector('.paper-total .grand span:last-child'),jobEl=preview.querySelector('.job');
     var quoteNumber=numberEl?(numberEl.textContent||'').trim():'';
     var q=preview.__tqbQuote||findSavedQuote(quoteNumber);
-    var businessName=businessEl?(businessEl.textContent||'').trim():'Tradie Quote Buddy';
+    var businessNameValue=businessEl?(businessEl.textContent||'').trim():'';
+    if(!businessNameValue||businessNameValue==='Your Business Name'||businessNameValue.toLowerCase()==='tradie quote buddy')businessNameValue=businessName();
     var total=totalEl?(totalEl.textContent||'').trim():'';
-    var businessEmail='',businessPhone='',businessAddress='',jobDescription='',itemDetails='',materialsDetails='',labourDetails='',subtotal='',discount='',gst='';
-    try{var raw=localStorage.getItem('tqb_settings_v6'),settings=raw?JSON.parse(raw):{};businessEmail=String(settings.businessEmail||'').trim();businessPhone=String(settings.businessPhone||'').trim();businessAddress=String(settings.businessAddress||'').trim();if(!businessName||businessName==='Your Business Name')businessName=String(settings.businessName||'Tradie Quote Buddy');}catch(e){}
+    var s=settings(),businessEmail=String(s.businessEmail||'').trim(),businessPhone=String(s.businessPhone||'').trim(),businessAddress=String(s.businessAddress||'').trim(),jobDescription='',itemDetails='',materialsDetails='',labourDetails='',subtotal='',discount='',gst='';
     if(q){
       customer={name:String(q.customerName||''),phone:String(q.customerPhone||''),email:String(q.customerEmail||''),address:String(q.customerAddress||'')};
-      jobDescription=String(q.jobDescription||'');
-      subtotal=money(q.subtotal);discount=Number(q.discount)>0?'-'+money(q.discount):'';gst=money(q.gst);total=money(q.total);quoteNumber=String(q.number||quoteNumber);
+      jobDescription=String(q.jobDescription||'');subtotal=money(q.subtotal);discount=Number(q.discount)>0?'-'+money(q.discount):'';gst=money(q.gst);total=money(q.total);quoteNumber=String(q.number||quoteNumber);
       var items=Array.isArray(q.items)?q.items:[],lines=[];
       for(var i=0;i<items.length;i++){var item=items[i]||{},qty=item.qty==null?1:Number(item.qty)||0,unit=item.unitPrice==null?Number(item.amount)||0:Number(item.unitPrice)||0,amount=qty*unit;if(item.description||amount||qty)lines.push(String(item.description||'')+' | Qty: '+qty+' | Unit: '+money(unit)+' | Amount: '+money(amount));}
-      materialsDetails=lines.join('\n');itemDetails=materialsDetails;
-      if(Number(q.labourHours)>0)labourDetails='Labour | Hours: '+Number(q.labourHours)+' | Rate: '+money(q.hourlyRate)+'/hr | Amount: '+money(q.labour);
+      materialsDetails=lines.join('\n');itemDetails=materialsDetails;if(Number(q.labourHours)>0)labourDetails='Labour | Hours: '+Number(q.labourHours)+' | Rate: '+money(q.hourlyRate)+'/hr | Amount: '+money(q.labour);
     }else{
-      jobDescription=getTextAfterLabel(jobEl,'Job description');
-      var table=preview.querySelector('table tbody');
+      jobDescription=getTextAfterLabel(jobEl,'Job description');var table=preview.querySelector('table tbody');
       if(table){var rows=table.querySelectorAll('tr'),allDetails=[],materialLines=[],labourLines=[];for(var r=0;r<rows.length;r++){var cells=rows[r].querySelectorAll('td');if(cells.length<2)continue;var description=(cells[0].textContent||'').trim();var line=cells.length>=4?description+' | Qty: '+cells[1].textContent.trim()+' | Unit: '+cells[2].textContent.trim()+' | Amount: '+cells[3].textContent.trim():description+' | Amount: '+cells[cells.length-1].textContent.trim();if(/^Labour(?:\s|$)/i.test(description))labourLines.push(line);else materialLines.push(line);allDetails.push(line);}itemDetails=allDetails.join('\n');materialsDetails=materialLines.join('\n');labourDetails=labourLines.join('\n');}
       var totalRows=preview.querySelectorAll('.paper-total > div');for(var t=0;t<totalRows.length;t++){var spans=totalRows[t].querySelectorAll('span');if(spans.length<2)continue;var label=(spans[0].textContent||'').trim().toLowerCase(),value=(spans[1].textContent||'').trim();if(label==='subtotal')subtotal=value;else if(label==='discount')discount=value;else if(label==='gst')gst=value;}
     }
-    var token=q&&String(q.responseToken||q.response_token||'').trim();if(!token)token=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():(Date.now()+'-'+Math.random().toString(36).slice(2));
-    if(q)saveQuoteToken(q,token);
-    var payload={quote_number:quoteNumber,business_name:businessName,business_email:businessEmail,business_phone:businessPhone,business_address:businessAddress,customer_name:customer.name,customer_phone:customer.phone,customer_email:customer.email,customer_address:customer.address,job_description:jobDescription,item_details:itemDetails,materials_details:materialsDetails,labour_details:labourDetails,subtotal:subtotal,discount:discount,gst:gst,total:total,quote_total:total,decision:decision,quote_status:'Pending',response_token:token,responded_at:''};
+    var token=q&&String(q.responseToken||q.response_token||'').trim();if(!token)token=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():(Date.now()+'-'+Math.random().toString(36).slice(2));if(q)saveQuoteToken(q,token);
+    var payload={quote_number:quoteNumber,business_name:businessNameValue,business_email:businessEmail,business_phone:businessPhone,business_address:businessAddress,customer_name:customer.name,customer_phone:customer.phone,customer_email:customer.email,customer_address:customer.address,job_description:jobDescription,item_details:itemDetails,materials_details:materialsDetails,labour_details:labourDetails,subtotal:subtotal,discount:discount,gst:gst,total:total,quote_total:total,decision:decision,quote_status:'Pending',response_token:token,responded_at:''};
     return RESPONSE_BASE+encodeData(payload);
   }
   function patchExistingResponseControls(preview){var controls=preview.querySelectorAll('a,button'),foundAccept=false,foundDecline=false;for(var i=0;i<controls.length;i++){var text=(controls[i].textContent||'').trim().toLowerCase();if(text.indexOf('accept')!==-1){foundAccept=true;if(controls[i].tagName==='A')controls[i].setAttribute('href',buildResponseUrl('Accepted'));else controls[i].onclick=function(e){e.preventDefault();window.location.href=buildResponseUrl('Accepted');};}if(text.indexOf('decline')!==-1||text.indexOf('reject')!==-1){foundDecline=true;if(controls[i].tagName==='A')controls[i].setAttribute('href',buildResponseUrl('Declined'));else controls[i].onclick=function(e){e.preventDefault();window.location.href=buildResponseUrl('Declined');};}}return {accept:foundAccept,decline:foundDecline};}

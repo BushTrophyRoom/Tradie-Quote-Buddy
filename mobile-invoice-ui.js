@@ -1,0 +1,16 @@
+(function(){
+'use strict';
+if(window.__dustyMobileInvoiceUiLoaded)return;window.__dustyMobileInvoiceUiLoaded=true;
+var KEY='tqb_invoices_v1';
+function read(){try{var x=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(x)?x:[]}catch(e){return[]}}
+function money(v){return new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD'}).format(Number(v)||0)}
+function esc(v){return String(v==null?'':v).replace(/[&<>\"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'})[c]})}
+function deleteInvoice(id){var list=read(),inv=list.find(function(x){return String(x.id)===String(id)});if(!inv)return;if(!confirm('Delete invoice '+(inv.number||'')+'?\n\nThis will permanently remove the invoice from this device.'))return;localStorage.setItem(KEY,JSON.stringify(list.filter(function(x){return String(x.id)!==String(id)})));location.reload()}
+function removeCardDeleteButtons(){document.querySelectorAll('.tqb-invoice-bridge-card .tqb-invoice-delete,.tqb-invoice-bridge-card [data-delete-invoice],.tqb-invoice-bridge-card button').forEach(function(b){if(b.classList.contains('tqb-invoice-bridge-open'))return;b.remove()})}
+function makeCardsClickable(){document.querySelectorAll('.tqb-invoice-bridge-card').forEach(function(card){if(card.getAttribute('data-mobile-clickable')==='1')return;card.setAttribute('data-mobile-clickable','1');var id=card.getAttribute('data-invoice-id');card.style.cursor='pointer';card.addEventListener('click',function(e){if(e.target.closest('button'))return;var open=card.querySelector('.tqb-invoice-bridge-open');if(open)open.click()})})}
+function injectDetailDelete(){var section=document.getElementById('invoices');if(!section)return;var actions=section.querySelector('.tqb-invoice-detail-actions');if(!actions||actions.querySelector('.tqb-mobile-delete-invoice'))return;var title=section.querySelector('.section-head h2');var num=title?(title.textContent||'').trim():'';var inv=read().find(function(x){return String(x.number||'')===num});if(!inv)return;var b=document.createElement('button');b.type='button';b.className='secondary tqb-mobile-delete-invoice';b.textContent='🗑️ Delete Invoice';b.style.background='#fee2e2';b.style.color='#b42318';b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();deleteInvoice(inv.id)});actions.appendChild(b)}
+function style(){if(document.getElementById('tqb-mobile-invoice-ui-style'))return;var s=document.createElement('style');s.id='tqb-mobile-invoice-ui-style';s.textContent='@media(max-width:800px){.tqb-invoice-bridge-card .tqb-invoice-bridge-open{display:none!important}.tqb-invoice-bridge-card{position:relative!important}.tqb-invoice-bridge-card:active{transform:scale(.995)}.tqb-mobile-delete-invoice{width:100%!important;min-height:50px!important;font-weight:800!important}}';document.head.appendChild(s)}
+function run(){style();removeCardDeleteButtons();makeCardsClickable();injectDetailDelete()}
+function start(){run();if(window.MutationObserver){new MutationObserver(function(){run()}).observe(document.body,{childList:true,subtree:true})}setInterval(run,700)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+})();

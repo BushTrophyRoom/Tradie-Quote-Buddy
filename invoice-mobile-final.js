@@ -5,19 +5,23 @@ window.__dustyInvoiceMobileFinalLoaded=true;
 function mobile(){return !window.matchMedia||window.matchMedia('(max-width:800px)').matches}
 function removeListButtons(){
  if(!mobile())return;
- document.querySelectorAll('#invoices .invoice-card,#invoices .tqb-invoice-bridge-card,#invoicesData > div > div').forEach(function(card){
+ document.querySelectorAll('#invoices .invoice-card,#invoices .tqb-invoice-bridge-card,#invoices .tqb-mobile-invoice-card,#invoicesData [data-delete-invoice]').forEach(function(node){
+  var card=node.matches&&node.matches('[data-delete-invoice]')?node.closest('.tqb-mobile-invoice-card,.invoice-card,.tqb-invoice-bridge-card')||node:node;
   if(card.closest&&card.closest('.tqb-business-invoice,.tqb-invoice-detail,.invoice-paper'))return;
+  card.querySelectorAll('button,[data-delete-invoice]').forEach(function(b){b.remove()});
   var open=card.querySelector('.invoice-open-btn,.tqb-invoice-bridge-open,.tqb-open-invoice-fallback');
-  if(open){open.style.setProperty('display','none','important');open.setAttribute('aria-hidden','true')}
-  card.querySelectorAll('button').forEach(function(b){if(b!==open)b.remove()});
+  if(open)open.remove();
   if(card.dataset.dustyInvoiceFinalClick!=='1'){
    card.dataset.dustyInvoiceFinalClick='1';
    card.style.cursor='pointer';
    card.setAttribute('role','button');
    card.addEventListener('click',function(e){
     if(e.target&&e.target.closest&&e.target.closest('button'))return;
-    var b=card.querySelector('.invoice-open-btn,.tqb-invoice-bridge-open,.tqb-open-invoice-fallback');
-    if(b)b.click();
+    var id=card.getAttribute('data-invoice-id');
+    var list=[];try{list=JSON.parse(localStorage.getItem('tqb_invoices_v1')||'[]')}catch(err){}
+    var inv=list.find(function(x){return String(x.id)===String(id)});
+    if(inv&&window.tqbOpenBusinessInvoice)window.tqbOpenBusinessInvoice(inv);
+    else if(inv){var event=new CustomEvent('tqb-open-invoice',{detail:inv});document.dispatchEvent(event)}
    });
   }
  })

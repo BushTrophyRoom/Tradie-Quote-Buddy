@@ -1,6 +1,10 @@
 (function(){
 'use strict';
+function load(src){var s=document.createElement('script');s.src=src;s.defer=true;s.onerror=function(){console.error('DustyBoots failed to load',src)};document.head.appendChild(s)}
 function ready(){
+  if(!document.getElementById('tqb-invoice-nav-bridge')){
+    load('./invoice-nav-bridge.js?v=3');
+  }
   if(!window.tqbOpenBusiness){setTimeout(ready,20);return}
   if(!document.getElementById('dustyboots-mobile-form-fix')){
     var s=document.createElement('style');s.id='dustyboots-mobile-form-fix';
@@ -9,9 +13,6 @@ function ready(){
   }
   if(!document.getElementById('dustyboots-customer-save-fix')){
     var f=document.createElement('script');f.id='dustyboots-customer-save-fix';f.src='./customer-save-fix.js?v=2';document.head.appendChild(f)
-  }
-  if(!document.getElementById('tqb-invoice-nav-bridge')){
-    var ib=document.createElement('script');ib.id='tqb-invoice-nav-bridge';ib.src='./invoice-nav-bridge.js?v=2';ib.defer=true;document.head.appendChild(ib)
   }
   var current=document.querySelector('.screen.active');
   ['itemsServices','payments','reports'].forEach(function(id){

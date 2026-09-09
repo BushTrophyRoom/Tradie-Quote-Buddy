@@ -6,6 +6,7 @@ var CREATE='https://cychngcvhgtfuahavlqq.supabase.co/functions/v1/square-create-
 var replay=false,locks={};
 function hex(bytes){var a=new Uint8Array(bytes);crypto.getRandomValues(a);return Array.from(a).map(function(b){return b.toString(16).padStart(2,'0')}).join('')}
 function owner(){var k=localStorage.getItem(OWNER_KEY)||'';if(!/^[a-f0-9]{64}$/i.test(k)){k=hex(32);localStorage.setItem(OWNER_KEY,k)}return k}
+function businessName(){try{var s=JSON.parse(localStorage.getItem('tqb_settings_v6')||'{}');var n=String(s.businessName||s.business_name||'').trim();if(!n||n.toLowerCase()==='tradie quote buddy')return'DustyBoots Invoicing';return n}catch(e){return'DustyBoots Invoicing'}}
 function invoices(){try{var x=JSON.parse(localStorage.getItem('tqb_invoices_v1')||'[]');return Array.isArray(x)?x:[]}catch(e){return[]}}
 function save(list){localStorage.setItem('tqb_invoices_v1',JSON.stringify(list))}
 function current(){var view=document.getElementById('invoiceView');if(!view)return null;var b=view.querySelector('.invoice-meta b'),n=b?(b.textContent||'').trim():'';if(!n){var m=(view.textContent||'').match(/INV-\d+/);n=m?m[0]:''}if(!n)return null;var list=invoices();for(var i=0;i<list.length;i++)if(String(list[i].number)===n)return list[i];return null}
@@ -15,7 +16,7 @@ function createLink(inv){
   if(inv.squareCheckoutUrl)return Promise.resolve(inv);
   var key=String(inv.id||inv.number||'');
   if(locks[key])return locks[key];
-  locks[key]=fetch(CREATE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({owner_key:owner(),invoice_id:String(inv.id||''),invoice_number:String(inv.number||''),amount_cents:Math.round(Number(inv.total||0)*100),currency:'AUD',name:(inv.businessName||'Tradie Quote Buddy')+' - '+(inv.number||'Invoice')})})
+  locks[key]=fetch(CREATE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({owner_key:owner(),invoice_id:String(inv.id||''),invoice_number:String(inv.number||''),amount_cents:Math.round(Number(inv.total||0)*100),currency:'AUD',name:(inv.businessName||businessName())+' - '+(inv.number||'Invoice')})})
   .then(function(r){return r.json().then(function(d){return{ok:r.ok,data:d}})})
   .then(function(x){
     if(!x.ok||!x.data.checkout_url)throw new Error(x.data&&x.data.error||'Square could not create the payment link.');

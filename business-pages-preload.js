@@ -7,8 +7,10 @@ function ready(){
   if(!window.tqbOpenBusiness){setTimeout(ready,20);return}
   if(!document.getElementById('dustyboots-mobile-form-fix')){var s=document.createElement('style');s.id='dustyboots-mobile-form-fix';s.textContent='@media(max-width:700px){#customersData label{display:block!important}#customersData input,#customersData textarea{width:100%!important;min-height:48px!important;font-size:16px!important;box-sizing:border-box!important}#customersData button{min-height:48px!important;font-size:16px!important;touch-action:manipulation!important}}';document.head.appendChild(s)}
   if(!document.getElementById('dustyboots-customer-save-fix')){var c=document.createElement('script');c.id='dustyboots-customer-save-fix';c.src='./customer-save-fix.js?v=2';document.head.appendChild(c)}
-  var current=document.querySelector('.screen.active');['itemsServices','payments','reports'].forEach(function(id){try{window.tqbOpenBusiness(id)}catch(e){console.error('DustyBoots business preload',id,e)}});
-  if(current&&current.id==='customers')setTimeout(function(){try{window.tqbOpenBusiness('customers')}catch(e){}},0)
+  var initial=document.querySelector('.screen.active');
+  ['itemsServices','payments','reports'].forEach(function(id){try{window.tqbOpenBusiness(id)}catch(e){console.error('DustyBoots business preload',id,e)}});
+  if(initial){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active')});initial.classList.add('active');document.querySelectorAll('.nav').forEach(function(n){n.classList.toggle('active',n.getAttribute('data-screen')===initial.id)})}
+  if(initial&&initial.id==='customers')setTimeout(function(){try{window.tqbOpenBusiness('customers')}catch(e){}},0)
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
 })();

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Connect Square Sandbox</title>
+<style>
+body{margin:0;background:#f3f4f6;color:#171717;font-family:Arial,sans-serif;padding:24px}.card{max-width:520px;margin:30px auto;background:#fff;border-radius:18px;padding:24px;box-shadow:0 4px 18px #0001}h1{margin:0 0 10px;font-size:25px}.step{margin:18px 0;padding:14px;border-radius:12px;background:#f8fafc;border:1px solid #e5e7eb}.num{font-weight:800}.btn{display:block;text-align:center;text-decoration:none;border-radius:12px;padding:14px 16px;font-weight:800;margin-top:12px}.dashboard{background:#e5e7eb;color:#111}.continue{background:#ffb000;color:#111;border:0;width:100%;font-size:16px;box-sizing:border-box}.note{font-size:13px;color:#667085;line-height:1.5}.warning{background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:12px;font-size:13px;line-height:1.5;margin-top:14px}.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;border-radius:12px;padding:12px;font-size:13px;line-height:1.5;margin-top:14px;display:none}
+</style>
+</head>
+<body>
+<div class="card">
+<div style="font-size:12px;letter-spacing:2px;font-weight:800;color:#b66e00">DUSTYBOOTS INVOICING</div>
+<h1>Connect Square Sandbox</h1>
+<p class="note">Square Sandbox needs your test seller dashboard open before it will show the authorization screen.</p>
+<div class="step">
+<div class="num">1. Open your Sandbox seller account</div>
+<p class="note">Tap below, sign in if needed, then in <b>Sandbox Test Accounts</b> choose your test seller and tap <b>Open</b>. Leave that Square Dashboard tab open.</p>
+<a class="btn dashboard" href="https://developer.squareup.com/apps" target="_blank" rel="noopener">Open Square Developer Console</a>
+</div>
+<div class="step">
+<div class="num">2. Start authorization</div>
+<p class="note">After the Sandbox Dashboard is open, return here and tap Continue.</p>
+<button id="continue" class="btn continue" type="button">Continue to Square Authorization →</button>
+<div id="error" class="error"></div>
+</div>
+<div class="warning"><b>Important:</b> Use the Square Sandbox test seller account, not your normal production Square Dashboard.</div>
+</div>
+<script>
+(function(){
+ var p=new URLSearchParams(location.search),auth=p.get('auth'),btn=document.getElementById('continue'),err=document.getElementById('error');
+ if(!auth){btn.disabled=true;err.style.display='block';err.textContent='The Square authorization request is missing. Please return to DustyBoots and tap Connect Square again.';return;}
+ try{auth=decodeURIComponent(auth)}catch(e){}
+ if(!/^https:\/\/connect\.squareupsandbox\.com\/oauth2\/authorize\?/.test(auth)){btn.disabled=true;err.style.display='block';err.textContent='The Square authorization request is invalid. Please return to DustyBoots and try again.';return;}
+ btn.onclick=function(){location.href=auth};
+})();
+</script>
+</body>
+</html>

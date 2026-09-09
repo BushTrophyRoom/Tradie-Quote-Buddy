@@ -6,7 +6,7 @@ function ready(){
   if(!document.getElementById('tqb-invoice-click-fix'))load('./invoice-click-fix.js?v=3','tqb-invoice-click-fix');
   if(!document.getElementById('tqb-invoice-mobile-final'))load('./invoice-mobile-final.js?v=3','tqb-invoice-mobile-final');
   if(!document.getElementById('tqb-square-payments'))load('./square-payments.js?v=3','tqb-square-payments');
-  if(!document.getElementById('tqb-invoice-square-send-fix'))load('./invoice-square-send-fix.js?v=1','tqb-invoice-square-send-fix');
+  if(!document.getElementById('tqb-invoice-square-send-fix'))load('./invoice-square-send-fix.js?v=2','tqb-invoice-square-send-fix');
   if(!window.tqbOpenBusiness){setTimeout(ready,20);return}
   if(!document.getElementById('dustyboots-mobile-form-fix')){var s=document.createElement('style');s.id='dustyboots-mobile-form-fix';s.textContent='@media(max-width:700px){#customersData label{display:block!important}#customersData input,#customersData textarea{width:100%!important;min-height:48px!important;font-size:16px!important;box-sizing:border-box!important}#customersData button{min-height:48px!important;font-size:16px!important;touch-action:manipulation!important}}';document.head.appendChild(s)}
   if(!document.getElementById('dustyboots-customer-save-fix')){var c=document.createElement('script');c.id='dustyboots-customer-save-fix';c.src='./customer-save-fix.js?v=2';document.head.appendChild(c)}

@@ -1,0 +1,1 @@
+document.addEventListener('DOMContentLoaded',function(){var v=document.getElementById('invoiceView');if(!v)return;var a=v.querySelector('.invoice-actions')||v.querySelector('.tqb-invoice-detail-actions');if(!a)return;var b=document.createElement('button');b.id='invoiceSquarePayBtn';b.type='button';b.textContent='💳 Set up Pay by Square';a.insertBefore(b,a.children[1]||null);});

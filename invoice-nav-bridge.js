@@ -2,60 +2,48 @@
 'use strict';
 if(window.__tqbInvoiceNavBridgeLoaded)return;
 window.__tqbInvoiceNavBridgeLoaded=true;
-var handlers={};
+var VIEW_BASE='https://bushtrophyroom.github.io/Tradie-Quote-Buddy/invoice-view.html?data=';
+var EMAIL_SERVICE='service_wmpq4cq',EMAIL_TEMPLATE='template_9kx2gib',EMAIL_PUBLIC_KEY='dyBjG4ATAJjl1LYSQ';
 function readInvoices(){try{var x=JSON.parse(localStorage.getItem('tqb_invoices_v1')||'[]');return Array.isArray(x)?x:[]}catch(e){return[]}}
-function capture(){
-  var cards=document.querySelectorAll('#invoiceList .invoice-card');
-  for(var i=0;i<cards.length;i++){
-    var id=cards[i].getAttribute('data-invoice-id');
-    if(id&&typeof cards[i].onclick==='function')handlers[String(id)]=cards[i].onclick;
-  }
-}
+function settings(){try{return JSON.parse(localStorage.getItem('tqb_settings_v6')||'{}')}catch(e){return{}}}
+function businessName(){var s=settings(),n=String(s.businessName||s.business_name||'').trim();return n&&n.toLowerCase()!=='tradie quote buddy'?n:'DustyBoots Invoicing'}
+function money(v){return new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD'}).format(Number(v)||0)}
+function esc(v){return String(v==null?'':v).replace(/[&<>\"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'})[c]})}
+function enc(o){var s=JSON.stringify(o),b=btoa(unescape(encodeURIComponent(s)));return b.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+function invoiceUrl(inv){var s=settings(),x=Object.assign({},inv,{bankName:inv.bankName||s.bankName||'',bankAccountName:inv.bankAccountName||s.bankAccountName||'',bankBsb:inv.bankBsb||s.bankBsb||'',bankAccountNumber:inv.bankAccountNumber||s.bankAccountNumber||'',bankPayId:inv.bankPayId||s.bankPayId||'',bankReference:inv.bankReference||s.bankReference||'Use invoice number as reference'});return VIEW_BASE+enc(x)}
 function styles(){
   if(document.getElementById('tqb-invoice-bridge-style'))return;
   var s=document.createElement('style');s.id='tqb-invoice-bridge-style';
-  s.textContent='.tqb-invoice-bridge-list{display:grid;gap:12px}.tqb-invoice-bridge-card{background:#fff;border:1px solid #e6eaf0;border-radius:14px;padding:18px;box-shadow:0 3px 14px #1720330b}.tqb-invoice-bridge-card .row{display:flex;justify-content:space-between;gap:12px}.tqb-invoice-bridge-card small{display:block;color:#667085;margin-top:5px}.tqb-invoice-bridge-open{display:block!important;width:100%!important;margin-top:14px!important;border:0!important;border-radius:10px!important;padding:13px 14px!important;background:#172033!important;color:#fff!important;font:inherit!important;font-weight:800!important;min-height:50px!important;cursor:pointer!important;touch-action:manipulation!important;pointer-events:auto!important}';
+  s.textContent='.tqb-invoice-bridge-list{display:grid;gap:12px}.tqb-invoice-bridge-card{background:#fff;border:1px solid #e6eaf0;border-radius:14px;padding:18px;box-shadow:0 3px 14px #1720330b}.tqb-invoice-bridge-card .row{display:flex;justify-content:space-between;gap:12px}.tqb-invoice-bridge-card small{display:block;color:#667085;margin-top:5px}.tqb-invoice-bridge-open{display:block!important;width:100%!important;margin-top:14px!important;border:0!important;border-radius:10px!important;padding:13px 14px!important;background:#172033!important;color:#fff!important;font:inherit!important;font-weight:800!important;min-height:50px!important;cursor:pointer!important;touch-action:manipulation!important;pointer-events:auto!important}.tqb-invoice-detail{background:#fff;border:1px solid #e6eaf0;border-radius:14px;padding:20px}.tqb-invoice-detail-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}.tqb-invoice-detail-actions button{flex:1;min-width:170px;min-height:48px;border:0;border-radius:10px;padding:12px 14px;font:inherit;font-weight:800;cursor:pointer;touch-action:manipulation}.tqb-invoice-detail-actions .primary{background:#172033;color:#fff}.tqb-invoice-detail-actions .secondary{background:#e5e7eb;color:#111}.tqb-invoice-detail .invoice-meta{float:right;text-align:right}.tqb-invoice-detail .invoice-paper-head{overflow:auto;border-bottom:2px solid #172033;padding-bottom:18px}.tqb-invoice-detail .invoice-paper-head h1{margin:0 0 6px;font-size:25px}.tqb-invoice-detail .invoice-meta h2{margin:0 0 6px}.tqb-invoice-detail .invoice-status{display:inline-block;margin-top:8px;padding:5px 11px;border-radius:999px;background:#fff2cf;color:#8a5a00;font-size:12px;font-weight:800}.tqb-invoice-detail .invoice-table{width:100%;border-collapse:collapse;margin-top:22px}.tqb-invoice-detail .invoice-table th,.tqb-invoice-detail .invoice-table td{padding:9px 7px;border-bottom:1px solid #e5e7eb;text-align:left}.tqb-invoice-detail .invoice-table th:not(:first-child),.tqb-invoice-detail .invoice-table td:not(:first-child){text-align:right}.tqb-invoice-detail .totals{max-width:330px;margin:18px 0 0 auto}.tqb-invoice-detail .totals div{display:flex;justify-content:space-between;padding:6px 0}.tqb-invoice-detail .totals .grand{border-top:2px solid #172033;font-size:19px;font-weight:800;padding-top:10px}.tqb-invoice-detail .payment{margin-top:22px;padding:16px;border:1px solid #e5e7eb;border-radius:12px;background:#f8fafc}@media(max-width:600px){.tqb-invoice-detail{padding:16px}.tqb-invoice-detail .invoice-meta{float:none;text-align:left;margin-top:18px}.tqb-invoice-detail-actions{display:grid;grid-template-columns:1fr}.tqb-invoice-detail-actions button{width:100%;min-width:0}.tqb-invoice-detail .invoice-table{font-size:13px;display:block;overflow:auto;white-space:nowrap}.tqb-invoice-detail .totals{max-width:none}}
+';
   document.head.appendChild(s);
 }
-function restore(){
-  capture();
-  var section=document.getElementById('invoices');
-  if(!section)return;
-  var staticPage=section.querySelector('.db-data-page');
-  if(!staticPage)return;
-  styles();
-  var list=readInvoices();
+function capture(){return}
+function renderList(){
+  var section=document.getElementById('invoices');if(!section)return;
+  styles();var list=readInvoices();
   var html='<div class="section-head"><h2>Invoices</h2></div><div class="tqb-invoice-bridge-list">';
   if(!list.length)html+='<div class="empty">No invoices yet.</div>';
-  for(var i=0;i<list.length;i++){
-    var x=list[i];
-    html+='<div class="tqb-invoice-bridge-card" data-invoice-id="'+String(x.id||'').replace(/"/g,'&quot;')+'"><div class="row"><b>'+String(x.number||'Invoice')+'</b><b>$'+Number(x.total||0).toLocaleString('en-AU',{minimumFractionDigits:2,maximumFractionDigits:2})+'</b></div><small>'+String(x.customerName||'Unnamed customer')+' · '+String(x.invoiceDate||'')+'</small><div style="margin-top:8px">'+String(x.status||'Unpaid')+'</div><button type="button" class="tqb-invoice-bridge-open">📄 Open Invoice</button></div>';
-  }
-  html+='</div>';
-  section.innerHTML=html;
-  section.classList.add('active');
-  document.querySelectorAll('.screen').forEach(function(s){if(s.id!=='invoices')s.classList.remove('active')});
-  document.querySelectorAll('.nav').forEach(function(n){n.classList.toggle('active',n.getAttribute('data-screen')==='invoices')});
-  section.querySelectorAll('.tqb-invoice-bridge-card').forEach(function(card){
-    var id=card.getAttribute('data-invoice-id');
-    var handler=handlers[String(id)];
-    function open(){
-      if(handler){handler.call(card,{target:card,preventDefault:function(){},stopPropagation:function(){}});return}
-      var original=document.querySelector('#invoiceList .invoice-card[data-invoice-id="'+id.replace(/"/g,'\\"')+'"]');
-      if(original&&typeof original.onclick==='function'){original.onclick.call(card,{target:card,preventDefault:function(){},stopPropagation:function(){}});return}
-      alert('Please refresh the app and try opening the invoice again.');
-    }
-    card.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('.tqb-invoice-bridge-open'))return;open()});
-    var b=card.querySelector('.tqb-invoice-bridge-open');
-    b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();open()});
-    card.addEventListener('touchend',function(e){if(e.target.closest&&e.target.closest('.tqb-invoice-bridge-open'))return;e.preventDefault();e.stopPropagation();open()},{passive:false});
-  });
+  for(var i=0;i<list.length;i++){var x=list[i];html+='<div class="tqb-invoice-bridge-card" data-invoice-id="'+esc(x.id)+'"><div class="row"><b>'+esc(x.number||'Invoice')+'</b><b>'+money(x.total)+'</b></div><small>'+esc(x.customerName||'Unnamed customer')+' · '+esc(x.invoiceDate||'')+'</small><div style="margin-top:8px">'+esc(x.status||'Unpaid')+'</div><button type="button" class="tqb-invoice-bridge-open">📄 Open Invoice</button></div>'}
+  html+='</div>';section.innerHTML=html;section.classList.add('active');document.querySelectorAll('.screen').forEach(function(s){if(s.id!=='invoices')s.classList.remove('active')});
+  section.querySelectorAll('.tqb-invoice-bridge-open').forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();openInvoice(this.parentElement.getAttribute('data-invoice-id'))})});
 }
-function watch(){
-  capture();
-  if(window.MutationObserver){var o=new MutationObserver(function(){capture();var section=document.getElementById('invoices');if(section&&section.querySelector('.db-data-page'))restore()});o.observe(document.body,{childList:true,subtree:true});}
-  setInterval(function(){capture();var section=document.getElementById('invoices');if(section&&section.classList.contains('active')&&section.querySelector('.db-data-page'))restore()},500);
+function openInvoice(id){
+  var list=readInvoices(),inv=null;for(var i=0;i<list.length;i++)if(String(list[i].id)===String(id)){inv=list[i];break}if(!inv)return;
+  var section=document.getElementById('invoices');if(!section)return;styles();
+  var paid=String(inv.status||'').toLowerCase()==='paid',days=inv.paymentTermsDays==null?7:inv.paymentTermsDays;
+  var rows=(Array.isArray(inv.items)?inv.items:[]).map(function(item){var qty=item.qty==null?1:Number(item.qty)||0,unit=item.unitPrice==null?Number(item.amount)||0:Number(item.unitPrice)||0;return '<tr><td>'+esc(item.description||'')+'</td><td>'+qty+'</td><td>'+money(unit)+'</td><td>'+money(qty*unit)+'</td></tr>'}).join('');
+  if(inv.labourHours)rows+='<tr><td>Labour</td><td>'+esc(inv.labourHours)+' hrs</td><td>'+money(inv.hourlyRate)+'/hr</td><td>'+money(inv.labour)+'</td></tr>';
+  var bank=inv.bankName||inv.bankAccountName||inv.bankBsb||inv.bankAccountNumber||inv.bankPayId;
+  section.innerHTML='<div class="section-head"><button class="back-btn" id="tqbInvoiceBack">← Invoices</button><h2>'+esc(inv.number)+'</h2></div><div class="tqb-invoice-detail"><div class="tqb-invoice-detail-actions"><button type="button" class="secondary" id="tqbInvoiceBackTop">← Invoices</button>'+(!paid?'<button type="button" class="primary" id="sendInvoiceBtn">📧 Send Invoice</button>':'')+'<button type="button" class="secondary" id="copyInvoiceBtn">🔗 Copy Invoice Link</button><button type="button" class="primary" id="printInvoice">📄 Print / Save PDF</button></div><div class="invoice-paper-head"><div><h1>'+esc(inv.businessName||businessName())+'</h1><div>'+esc(inv.businessAddress||'')+'</div><div>'+esc(inv.businessPhone||'')+'</div><div>'+esc(inv.businessEmail||'')+'</div>'+(inv.abn?'<div>ABN '+esc(inv.abn)+'</div>':'')+'</div><div class="invoice-meta"><h2>INVOICE</h2><b>'+esc(inv.number)+'</b><div>Issued: '+esc(inv.invoiceDate||'')+'</div><div>Due: '+esc(inv.dueDate||'')+'</div><span class="invoice-status">'+esc(inv.status||'Unpaid')+'</span></div></div><div style="margin-top:22px"><b>Bill to</b><br>'+esc(inv.customerName||'')+'<br>'+esc(inv.customerPhone||'')+'<br>'+esc(inv.customerEmail||'')+'<br>'+esc(inv.customerAddress||'').replace(/\n/g,'<br>')+'</div><div style="margin-top:20px"><b>Job</b><br>'+esc(inv.jobDescription||'No job description supplied.').replace(/\n/g,'<br>')+'</div><table class="invoice-table"><thead><tr><th>Description</th><th>Qty</th><th>Unit price</th><th>Amount</th></tr></thead><tbody>'+rows+'</tbody></table><div class="totals"><div><span>Subtotal</span><span>'+money(inv.subtotal)+'</span></div>'+(Number(inv.discount)>0?'<div><span>Discount</span><span>-'+money(inv.discount)+'</span></div>':'')+'<div><span>GST</span><span>'+money(inv.gst)+'</span></div><div class="grand"><span>Total due</span><span>'+money(inv.total)+'</span></div></div><div class="payment"><b>Payment terms</b><div style="margin-top:7px">Payment due within '+esc(days)+' days, by '+esc(inv.dueDate||'')+'.</div>'+(bank?'<div style="margin-top:14px;padding:13px;border:1px solid #d9dee7;border-radius:10px;background:#fff"><b>Bank transfer details</b><div style="margin-top:7px">'+(inv.bankName?'<div>Bank: '+esc(inv.bankName)+'</div>':'')+(inv.bankAccountName?'<div>Account name: '+esc(inv.bankAccountName)+'</div>':'')+(inv.bankBsb?'<div>BSB: '+esc(inv.bankBsb)+'</div>':'')+(inv.bankAccountNumber?'<div>Account number: '+esc(inv.bankAccountNumber)+'</div>':'')+(inv.bankPayId?'<div>PayID: '+esc(inv.bankPayId)+'</div>':'')+'<div>Reference: <b>'+esc(inv.bankReference||inv.number)+'</b></div></div>':'<div style="margin-top:14px;color:#667085;font-size:12px">Bank transfer details will appear here once the business adds them in Business Settings.</div>')+'</div><div style="margin-top:14px;color:#667085;font-size:12px">Thanks for your business.</div></div></div>';
+  function back(){renderList()}
+  var bb=document.getElementById('tqbInvoiceBack');if(bb)bb.onclick=back;var bt=document.getElementById('tqbInvoiceBackTop');if(bt)bt.onclick=back;
+  var copy=document.getElementById('copyInvoiceBtn');if(copy)copy.onclick=function(){var url=invoiceUrl(inv);if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(url).then(function(){alert('Invoice link copied. You can paste it into an email, text message or Messenger.')}).catch(function(){prompt('Copy this invoice link:',url)});else prompt('Copy this invoice link:',url)};
+  var print=document.getElementById('printInvoice');if(print)print.onclick=function(){window.print()};
+  var send=document.getElementById('sendInvoiceBtn');if(send)send.onclick=function(){sendInvoice(inv,send)};
 }
-styles();
+function sendInvoice(inv,btn){if(!inv.customerEmail){alert('This invoice needs the customer email address before it can be sent.');return}if(!window.emailjs){alert('Email service is still loading. Please refresh the app and try again.');return}try{emailjs.init({publicKey:EMAIL_PUBLIC_KEY})}catch(e){}var old=btn.textContent;btn.disabled=true;btn.textContent='⏳ Sending Invoice…';var params={to_email:inv.customerEmail,customer_email:inv.customerEmail,customer_name:inv.customerName||'Customer',business_name:inv.businessName||businessName(),from_name:inv.businessName||businessName(),business_email:inv.businessEmail||'',business_phone:inv.businessPhone||'',business_address:inv.businessAddress||'',invoice_number:inv.number,invoice_no:inv.number,quote_number:inv.quoteNumber||'',invoice_date:inv.invoiceDate||'',due_date:inv.dueDate||'',payment_terms_days:String(inv.paymentTermsDays||0),invoice_total:money(inv.total),total:money(inv.total),amount_due:money(inv.total),invoice_link:invoiceUrl(inv),response_link:invoiceUrl(inv),quote_pdf:invoiceUrl(inv),invoice_pdf:invoiceUrl(inv),quote_status:inv.status==='Paid'?'Invoice - Paid':'Invoice - Unpaid',email_subject:'Invoice '+inv.number+' from '+(inv.businessName||businessName()),bank_name:inv.bankName||'',bank_account_name:inv.bankAccountName||'',bank_bsb:inv.bankBsb||'',bank_account_number:inv.bankAccountNumber||'',bank_payid:inv.bankPayId||'',bank_reference:inv.bankReference||inv.number};emailjs.send(EMAIL_SERVICE,EMAIL_TEMPLATE,params).then(function(){btn.disabled=false;btn.textContent='✓ Invoice Sent';setTimeout(function(){btn.textContent='📧 Send Invoice'},2500);alert('Invoice '+inv.number+' was emailed automatically to '+inv.customerEmail+'.')}).catch(function(e){console.error(e);btn.disabled=false;btn.textContent='⚠️ Send Failed';alert('We could not send the invoice automatically. '+(e&&e.text?e.text:(e&&e.message?e.message:'Please try again.')));setTimeout(function(){btn.textContent=old},2500)})}
+function restore(){var section=document.getElementById('invoices');if(!section)return;if(section.querySelector('.db-data-page'))renderList()}
+function watch(){styles();if(window.MutationObserver){var o=new MutationObserver(function(){restore()});o.observe(document.body,{childList:true,subtree:true})}setInterval(restore,500)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',watch);else watch();
 })();

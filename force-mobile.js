@@ -1,0 +1,3 @@
+(function(){'use strict';
+function boot(){if(!(window.matchMedia&&window.matchMedia('(max-width:600px)').matches))return;var s=document.createElement('script');s.src='./mobile-entry-guard.js?v=1';s.defer=true;document.head.appendChild(s);var m=document.createElement('script');m.src='./mobile-nav.js?v=2';m.defer=true;document.head.appendChild(m)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();})();

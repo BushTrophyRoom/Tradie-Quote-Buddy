@@ -3,7 +3,10 @@
 function load(src){var s=document.createElement('script');s.src=src;s.defer=true;s.onerror=function(){console.error('DustyBoots failed to load',src)};document.head.appendChild(s)}
 function ready(){
   if(!document.getElementById('tqb-invoice-nav-bridge')){
-    load('./invoice-nav-bridge.js?v=3');
+    load('./invoice-nav-bridge.js?v=4');
+  }
+  if(!document.getElementById('tqb-invoice-click-fix')){
+    var f=document.createElement('script');f.id='tqb-invoice-click-fix';f.src='./invoice-click-fix.js?v=1';document.head.appendChild(f)
   }
   if(!window.tqbOpenBusiness){setTimeout(ready,20);return}
   if(!document.getElementById('dustyboots-mobile-form-fix')){

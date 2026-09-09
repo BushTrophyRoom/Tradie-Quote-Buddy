@@ -13,7 +13,7 @@ function cleanCards(){
   if(card.dataset.mobileInvoiceClick!=='1'){card.dataset.mobileInvoiceClick='1';card.style.cursor='pointer';card.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('button'))return;var b=card.querySelector('.tqb-invoice-bridge-open,.invoice-open-btn,.tqb-open-invoice-fallback');if(b)b.click();})}
  })
 }
-function findInvoice(){var section=document.getElementById('invoices');if(!section)return null;var h=section.querySelector('.section-head h2');var num=h?(h.textContent||'').trim():'';var list=read();for(var i=0;i<list.length;i++)if(String(list[i].number||'')===num)return list[i];return null}
+function findInvoice(){var section=document.getElementById('invoices');if(!section)return null;var num='';var h=section.querySelector('.tqb-business-meta b,.invoice-meta b');if(h)num=(h.textContent||'').trim();if(!num){var sh=section.querySelector('.section-head h2');num=sh?(sh.textContent||'').trim():''}var list=read();for(var i=0;i<list.length;i++)if(String(list[i].number||'')===num)return list[i];return null}
 function addDelete(){
  var section=document.getElementById('invoices');if(!section)return;
  var actions=section.querySelector('.tqb-invoice-detail-actions,.tqb-business-actions,.invoice-actions');if(!actions||actions.querySelector('.tqb-mobile-delete-invoice'))return;

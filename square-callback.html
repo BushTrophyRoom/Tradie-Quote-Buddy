@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DustyBoots Invoicing • Square</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f3f4f6;margin:0;padding:28px;color:#171717}
+.card{max-width:620px;margin:8vh auto;background:#fff;border-radius:18px;padding:28px;box-shadow:0 4px 20px #0001}
+h1{margin:0 0 12px;font-size:28px}p{line-height:1.5}.ok{color:#166534;font-weight:700}.err{color:#991b1b;font-weight:700}
+a{display:inline-block;margin-top:14px;background:#ffb000;color:#111;text-decoration:none;font-weight:700;padding:12px 16px;border-radius:10px}
+.small{font-size:13px;color:#666;word-break:break-word}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>Square connection</h1>
+<p id="message">Checking the Square connection…</p>
+<a href="./">Return to DustyBoots Invoicing</a>
+</div>
+<script>
+(function(){
+  var p=new URLSearchParams(location.search);
+  var ok=p.get('status')==='connected';
+  var msg=p.get('message')|| (ok?'Square is connected.':'Square connection failed.');
+  var el=document.getElementById('message');
+  el.textContent=msg;
+  el.className=ok?'ok':'err';
+  if(p.get('detail')){
+    var d=document.createElement('div');d.className='small';d.textContent=p.get('detail');el.parentNode.appendChild(d);
+  }
+  if(ok){setTimeout(function(){location.href='./?square=connected'},900)}
+})();
+</script>
+</body>
+</html>

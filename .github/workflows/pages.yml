@@ -24,6 +24,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Bust invoice script cache
+        run: |
+          sed -i 's#./invoice-paid.js?v=1#./invoice-paid.js?v=2#g; s#./invoice-payment-controller.js?v=1#./invoice-payment-controller.js?v=2#g' index.html
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site

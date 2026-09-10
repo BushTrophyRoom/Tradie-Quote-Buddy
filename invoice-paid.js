@@ -21,6 +21,11 @@ function prepareSquare(inv){if(!inv||inv.squareCheckoutUrl)return Promise.resolv
 var squareBusy=false;
 function squareSend(e){if(squareBusy)return;var b=e.target&&e.target.closest?e.target.closest('#sendInvoiceBtn'):null;if(!b)return;var inv=current();if(!inv||inv.squareCheckoutUrl)return;squareBusy=true;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();var old=b.textContent;b.disabled=true;b.textContent='⏳ Preparing Card Payment…';prepareSquare(inv).then(function(){b.disabled=false;b.textContent=old;squareBusy=false;b.click()}).catch(function(err){b.disabled=false;b.textContent=old;squareBusy=false;alert('We could not prepare the card payment for this invoice.\n\n'+(err&&err.message?err.message:err))})}
 function patch(){style();var v=document.getElementById('invoiceView');if(!v)return;layout(v);bind(v);updateView(current()||{});}
-function start(){patch();window.addEventListener('click',squareSend,true);new MutationObserver(patch).observe(document.body,{childList:true,subtree:true});setInterval(patch,500)}
+function start(){
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('./sw.js?v=11',{updateViaCache:'none'}).then(function(r){return r.update()}).catch(function(){});
+  }
+  patch();window.addEventListener('click',squareSend,true);new MutationObserver(patch).observe(document.body,{childList:true,subtree:true});setInterval(patch,500)
+}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tradie-quote-buddy-v57';
+const CACHE_NAME = 'tradie-quote-buddy-v58';
 const APP_SHELL = [
   './', './index.html', './app-v7.js?v=10', './dashboard-layout.js?v=9',
   './response-actions.js?v=13', './quote-terms.js?v=2', './customer-send.js?v=8', './invoice.js?v=6', './invoice-delete-direct.js?v=2', './dashboard-invoice-stats.js?v=5', './status-sync.js?v=5', './email-routing.js?v=1', './invoice-paid.js?v=1', './bank-settings.js?v=2', './invoice-bank-live.js?v=2', './invoice-paid-live.js?v=2', './respond.html',
@@ -18,6 +18,10 @@ self.addEventListener('activate', event => {
     caches.keys()
       .then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))))
       .then(() => self.clients.claim())
+      .then(() => self.clients.matchAll({type:'window', includeUncontrolled:true}))
+      .then(clients => Promise.all(clients.map(client => {
+        try { return client.navigate(client.url); } catch (e) { return null; }
+      })))
   );
 });
 

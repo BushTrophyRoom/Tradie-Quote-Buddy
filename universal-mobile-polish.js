@@ -19,14 +19,29 @@ function init(){
  .stat{padding:15px!important}
  .stat b{font-size:22px!important}
  form{padding:18px!important}
+ form>h3{font-size:18px!important;margin:22px 0 12px!important;padding-top:18px!important;border-top:1px solid #e7eaee!important;color:#111827!important}
+ form>h3:first-child{margin-top:0!important;padding-top:0!important;border-top:0!important}
  label{font-size:13px!important;margin-bottom:13px!important;color:#374151!important}
  input,textarea,select{min-height:48px!important;border-radius:11px!important;border:1px solid #d8dde5!important;padding:12px!important;background:#fff!important;font-size:16px!important}
+ textarea{line-height:1.45!important}
  .grid2{gap:10px!important}
  .quote-list{gap:10px!important}
  .quote-card{padding:16px!important;min-height:88px!important}
  .action-row{display:grid!important;grid-template-columns:1fr 1fr!important;gap:9px!important;margin:0 0 14px!important}
  .action-row button{min-width:0!important;width:100%!important;min-height:48px!important}
  .primary,.secondary,.danger{min-height:48px!important;border-radius:11px!important;font-size:15px!important}
+ form>.primary[type=submit]{margin-top:18px!important;min-height:54px!important;font-size:16px!important}
+ #lineItems{display:grid!important;gap:9px!important}
+ .item-head{margin-top:4px!important;padding:0 2px!important;color:#6b7280!important}
+ .item{margin-bottom:0!important;background:#f8fafc!important;border:1px solid #e4e8ed!important;border-radius:12px!important;padding:8px!important}
+ .item input{background:#fff!important}
+ #addItemBtn{width:100%!important;margin:4px 0 4px!important}
+ .pricing-note{line-height:1.45!important;margin-bottom:12px!important}
+ .discount-row{margin-top:8px!important}
+ .check{background:#f8fafc!important;border:1px solid #e4e8ed!important;border-radius:11px!important;padding:12px!important}
+ .check input{min-height:auto!important}
+ .totals{background:#f8fafc!important;border:1px solid #e4e8ed!important;border-radius:13px!important;padding:12px!important;margin-top:16px!important}
+ .totals .grand{font-size:21px!important}
  .feature-card{padding:17px!important}
  .biz-screen{padding:18px 14px 28px!important;background:#f4f6f8!important}
  .biz-wrap{max-width:none!important}

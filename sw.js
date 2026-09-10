@@ -1,7 +1,7 @@
-const CACHE_NAME = 'tradie-quote-buddy-v61';
+const CACHE_NAME = 'tradie-quote-buddy-v62';
 const APP_SHELL = [
   './', './index.html', './app-v7.js?v=10', './dashboard-layout.js?v=9',
-  './response-actions.js?v=13', './quote-terms.js?v=2', './customer-send.js?v=8', './invoice.js?v=6', './invoice-delete-direct.js?v=2', './dashboard-invoice-stats.js?v=5', './status-sync.js?v=5', './email-routing.js?v=1', './invoice-paid.js?v=1', './bank-settings.js?v=2', './invoice-bank-live.js?v=2', './invoice-paid-live.js?v=1', './invoice-fix.js?v=2', './respond.html',
+  './response-actions.js?v=13', './quote-terms.js?v=2', './customer-send.js?v=8', './invoice.js?v=6', './invoice-delete-direct.js?v=2', './dashboard-invoice-stats.js?v=5', './status-sync.js?v=5', './email-routing.js?v=1', './invoice-paid.js?v=1', './bank-settings.js?v=2', './invoice-bank-live.js?v=2', './invoice-paid-live.js?v=1', './invoice-fix.js?v=62', './respond.html',
   './respond-v2.html?v=6', './quote-view.html', './invoice-view.html', './manifest.webmanifest?v=10', './icon.svg?v=2', './update-check.js?v=1'
 ];
 
@@ -11,6 +11,7 @@ async function freshAppDocument(request){
   const type=response.headers.get('content-type')||'';
   if(!type.includes('text/html')) return response;
   let html=await response.text();
+  html=html.replace(/invoice-fix\.js\?v=\d+/g,'invoice-fix.js?v=62');
   if(!html.includes('update-check.js')){
     const tag='<script src="./update-check.js?v=1" defer></script>';
     if(/<\/body>/i.test(html)) html=html.replace(/<\/body>/i,tag+'</body>');
@@ -18,7 +19,7 @@ async function freshAppDocument(request){
   }
   const headers=new Headers(response.headers);
   headers.set('cache-control','no-store, max-age=0');
-  headers.set('x-dustyboots-build','v61');
+  headers.set('x-dustyboots-build','v62');
   return new Response(html,{status:response.status,statusText:response.statusText,headers:headers});
 }
 

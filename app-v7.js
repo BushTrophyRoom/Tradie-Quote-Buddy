@@ -165,7 +165,6 @@
 
   function start(){
     quotes=read(QUOTES_KEY,[]); settings=Object.assign({},settings,read(SETTINGS_KEY,{})); ensureQuoteSequence(); save(); wire(); resetForm(); renderDashboard();
-    if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js?v=10').catch(function(){});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();

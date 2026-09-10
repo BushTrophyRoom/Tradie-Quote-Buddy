@@ -3,7 +3,7 @@
 function load(src,id){var s=document.createElement('script');if(id)s.id=id;s.src=src;s.defer=true;s.onerror=function(){console.error('DustyBoots failed to load',src)};document.head.appendChild(s)}
 function ready(){
   if(!document.getElementById('tqb-invoice-nav-bridge'))load('./invoice-nav-bridge.js?v=6','tqb-invoice-nav-bridge');
-  if(!document.getElementById('tqb-invoice-click-fix'))load('./invoice-click-fix.js?v=3','tqb-invoice-click-fix');
+  if(!document.getElementById('tqb-invoice-click-fix'))load('./invoice-click-fix.js?v=4','tqb-invoice-click-fix');
   if(!document.getElementById('tqb-invoice-mobile-final'))load('./invoice-mobile-final.js?v=3','tqb-invoice-mobile-final');
   if(!document.getElementById('tqb-square-payments'))load('./square-payments.js?v=5','tqb-square-payments');
   if(!document.getElementById('tqb-invoice-square-send-fix'))load('./invoice-square-send-fix.js?v=3','tqb-invoice-square-send-fix');

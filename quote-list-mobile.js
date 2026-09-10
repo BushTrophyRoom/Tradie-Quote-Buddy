@@ -23,10 +23,10 @@ function decorate(){
 }
 function css(){if(document.getElementById('quote-list-mobile-style'))return;var s=document.createElement('style');s.id='quote-list-mobile-style';s.textContent=`
 @media(max-width:700px){
- #saved .section-head{position:relative;display:block!important;min-height:62px!important;padding-left:2px!important}
- #saved .section-head .back-btn{position:absolute!important;left:0!important;top:0!important}
- #saved .section-head h2{margin:30px 0 0!important;font-size:25px!important;line-height:1.1!important}
- .quote-mobile-count{margin-top:5px!important;color:#737b86!important;font-size:13px!important;font-weight:500!important}
+ #saved .section-head{display:block!important;min-height:108px!important;height:auto!important;padding:0 2px!important;margin:0 0 14px!important;position:relative!important;overflow:visible!important}
+ #saved .section-head .back-btn{position:static!important;display:block!important;width:max-content!important;margin:0 0 8px!important;padding:0!important;line-height:1.2!important;transform:none!important;float:none!important}
+ #saved .section-head h2{display:block!important;clear:both!important;margin:0!important;padding:0!important;font-size:25px!important;line-height:1.1!important}
+ .quote-mobile-count{display:block!important;margin-top:5px!important;color:#737b86!important;font-size:13px!important;font-weight:500!important}
  #allQuotes{display:grid!important;gap:10px!important}
  #allQuotes .quote-card{position:relative!important;padding:15px 44px 14px 15px!important;min-height:100px!important;border-radius:15px!important;background:#fff!important;border:1px solid #e4e8ed!important;box-shadow:0 2px 8px #1720330b!important;overflow:hidden!important}
  #allQuotes .quote-card .row{display:grid!important;grid-template-columns:1fr auto!important;align-items:start!important;gap:8px!important;min-height:27px!important}

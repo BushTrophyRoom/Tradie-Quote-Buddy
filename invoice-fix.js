@@ -18,7 +18,7 @@ function layout(v){
  box.classList.add('dusty-invoice-actions');
  var paidBtn=findButton(v,/(mark as paid|mark paid|paid)/i,'#markPaidBtn');
  var del=findButton(v,/(delete invoice|delete)/i,'#deleteInvoiceBtn');
- if(send){send.classList.add('dusty-send');send.type='button'}
+ send.classList.add('dusty-send');send.type='button';
  if(paidBtn){paidBtn.classList.add('dusty-paid');paidBtn.type='button';paidBtn.disabled=false;paidBtn.style.pointerEvents='auto'}
  if(del){del.classList.add('dusty-delete');del.type='button'}
  var more=box.querySelector('.dusty-more');
@@ -29,10 +29,10 @@ function layout(v){
  more.onclick=function(e){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();menu.classList.toggle('open');more.textContent=menu.classList.contains('open')?'✕ Less':'••• More'};
  update(v,current());
 }
-function update(v,inv){if(!v||!inv)return;v.querySelectorAll('.invoice-status').forEach(function(s){s.textContent=inv.status||'Unpaid'});var b=findButton(v,/(mark as paid|mark paid|paid)/i,'#markPaidBtn');if(b)b.textContent=paid(inv)?'↩ Mark as Unpaid':'💰 Mark as Paid'}
-function togglePaid(){var inv=current();if(!inv)return;var list=read();var x=list.find(function(i){return String(i.number).toUpperCase()===String(inv.number).toUpperCase()});if(!x)return;if(paid(x)){x.status='Unpaid';delete x.paidAt;delete x.paidSource;delete x.paidMethod}else{x.status='Paid';x.paidAt=Date.now();x.paidSource='manual';x.paidMethod='Manual payment'}if(!write(list))return;var v=document.getElementById('invoiceView');update(v,x);if(typeof window.renderList==='function')window.renderList();if(typeof window.refreshTQBDashboard==='function')window.refreshTQBDashboard();}
-function handler(e){var t=e.target&&e.target.closest?e.target.closest('#markPaidBtn,button'):null;if(!t)return;var label=(t.textContent||'').trim();if(t.id==='markPaidBtn'||/^(💰\s*)?mark as paid$/i.test(label)||/^(↩\s*)?mark as unpaid$/i.test(label)){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();togglePaid()}}
+function update(v,inv){if(!v||!inv)return;v.querySelectorAll('.invoice-status').forEach(function(s){s.textContent=inv.status||'Unpaid';s.setAttribute('aria-label',inv.status||'Unpaid')});var b=findButton(v,/(mark as paid|mark paid|paid)/i,'#markPaidBtn');if(b)b.textContent=paid(inv)?'↩ Mark as Unpaid':'💰 Mark as Paid'}
+function togglePaid(){var inv=current();if(!inv)return;var list=read();var x=list.find(function(i){return String(i.number).toUpperCase()===String(inv.number).toUpperCase()});if(!x)return;if(paid(x)){x.status='Unpaid';delete x.paidAt;delete x.paidSource;delete x.paidMethod}else{x.status='Paid';x.paidAt=Date.now();x.paidSource='manual';x.paidMethod='Manual payment'}if(!write(list))return;var v=document.getElementById('invoiceView');update(v,x);if(typeof window.renderList==='function')window.renderList();if(typeof window.refreshTQBDashboard==='function')window.refreshTQBDashboard()}
+function handler(e){var t=e.target&&e.target.closest?e.target.closest('button'):null;if(!t)return;var label=(t.textContent||'').trim();if(t.id==='markPaidBtn'||/^(💰\s*)?mark as paid$/i.test(label)||/^(↩\s*)?mark as unpaid$/i.test(label)){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();togglePaid()}}
 function patch(){var v=document.getElementById('invoiceView');if(!v)return;layout(v)}
-function start(){document.addEventListener('click',handler,true);document.addEventListener('pointerup',handler,true);document.addEventListener('touchend',handler,true);patch();new MutationObserver(patch).observe(document.body,{childList:true,subtree:true});setInterval(patch,1000)}
+function start(){document.addEventListener('click',handler,true);patch();new MutationObserver(patch).observe(document.body,{childList:true,subtree:true});setInterval(patch,1000)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();

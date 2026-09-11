@@ -2,8 +2,7 @@ name: Deploy DustyBoots to GitHub Pages
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -23,16 +22,29 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
-      - name: Bust all app script caches
-        run: |
-          sed -i -E "s#(\./[^\"]+\.js)\?v=[0-9]+#\1?v=${GITHUB_RUN_NUMBER}#g" index.html
+        uses: actions/checkout@v4
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
+
+      - name: Bust app asset cache versions
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          run = '${{ github.run_number }}'
+          s = re.sub(r'(\./[^"\']+\.js)\?v=\d+', rf'\1?v={run}', s)
+          p.write_text(s, encoding='utf-8')
+          PY
+
       - name: Upload site
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v3
         with:
           path: .
+
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4

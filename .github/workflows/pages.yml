@@ -27,6 +27,7 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
+      # Force every push to publish the current main branch immediately.
       - name: Bust app asset cache versions
         shell: bash
         run: |

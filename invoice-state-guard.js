@@ -4,7 +4,7 @@ var KEY='tqb_invoices_v1',STATUS_HOST='cychngcvhgtfuahavlqq.supabase.co';
 var originalFetch=window.fetch;
 function read(){try{var x=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(x)?x:[]}catch(e){return[]}}
 function save(x){try{localStorage.setItem(KEY,JSON.stringify(x));return true}catch(e){return false}}
-function hasSquarePayment(x){return !!(x&&(x.squarePaymentId||x.squareOrderId||x.squarePaymentLinkId||x.paymentLinkId||x.paymentId))}
+function hasActualSquarePayment(x){return !!(x&&(x.squarePaymentId||x.squareOrderId||x.paymentId||String(x.paidSource||'').toLowerCase()==='square'&&x.paidConfirmedAt))}
 window.fetch=function(input,init){
   try{
     var u=typeof input==='string'?new URL(input,location.href):(input&&input.url?new URL(input.url):null);
@@ -20,10 +20,9 @@ function guard(){
     if(!inv||String(inv.status||'').toLowerCase()!=='paid')return;
     var created=Number(inv.createdAt)||0;
     var fresh=created>0&&(now-created)<(30*60*1000);
-    var squareMarked=String(inv.paidSource||'').toLowerCase()==='square';
-    if(fresh&&inv.quoteId&&squareMarked&&!hasSquarePayment(inv)){
+    if(fresh&&inv.quoteId&&String(inv.paidSource||'').toLowerCase()==='square'&&!hasActualSquarePayment(inv)){
       inv.status='Unpaid';
-      delete inv.paidAt;delete inv.paidSource;delete inv.paidMethod;delete inv.paymentMethod;delete inv.paymentDate;
+      delete inv.paidAt;delete inv.paidSource;delete inv.paidMethod;delete inv.paymentMethod;delete inv.paymentDate;delete inv.paidConfirmedAt;
       changed=true;
     }
   });

@@ -1,0 +1,23 @@
+(function(){
+'use strict';
+var KEY='tqb_invoices_v1';
+function read(){try{var x=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(x)?x:[]}catch(e){return[]}}
+function save(x){try{localStorage.setItem(KEY,JSON.stringify(x));return true}catch(e){return false}}
+function hasPaymentRecord(x){return !!(x&&((Number(x.paidAt)||0)>0||x.paidSource||x.paidMethod||x.paymentMethod||x.paymentDate))}
+function guard(){
+  var list=read(),changed=false,now=Date.now();
+  list.forEach(function(inv){
+    if(!inv||String(inv.status||'').toLowerCase()!=='paid')return;
+    var created=Number(inv.createdAt)||0;
+    var fresh=created>0&&(now-created)<(15*60*1000);
+    if(fresh&&inv.quoteId&&!hasPaymentRecord(inv)){
+      inv.status='Unpaid';
+      delete inv.paidAt;delete inv.paidSource;delete inv.paidMethod;delete inv.paymentMethod;delete inv.paymentDate;
+      changed=true;
+    }
+  });
+  if(changed){save(list);if(typeof window.renderList==='function')window.renderList();if(typeof window.refreshTQBDashboard==='function')window.refreshTQBDashboard();}
+}
+function start(){guard();setInterval(guard,1000)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+})();

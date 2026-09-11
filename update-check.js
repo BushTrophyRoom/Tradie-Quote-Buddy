@@ -1,13 +1,13 @@
 (function(){
   'use strict';
   var KEY='dustyboots-build-seen';
-  var BUILD='2026-09-11-8';
+  var BUILD='2026-09-11-9';
   var previous='';
   try{previous=localStorage.getItem(KEY)||'';localStorage.setItem(KEY,BUILD)}catch(e){}
   function loadScript(src){var sc=document.createElement('script');sc.src=src;sc.defer=true;document.head.appendChild(sc)}
   function registerFreshWorker(){
     if(!('serviceWorker' in navigator)) return;
-    navigator.serviceWorker.register('./sw.js?v=75',{updateViaCache:'none'}).then(function(reg){
+    navigator.serviceWorker.register('./sw.js?v=76',{updateViaCache:'none'}).then(function(reg){
       if(reg.waiting){try{reg.waiting.postMessage({type:'SKIP_WAITING'})}catch(e){}}
       try{reg.update()}catch(e){}
     }).catch(function(){})

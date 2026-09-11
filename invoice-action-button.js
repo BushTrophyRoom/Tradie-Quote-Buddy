@@ -4,82 +4,14 @@ var KEY='tqb_invoices_v1';
 function read(){try{var x=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(x)?x:[]}catch(e){return[]}}
 function save(x){try{localStorage.setItem(KEY,JSON.stringify(x));return true}catch(e){return false}}
 function isPaid(x){return String(x&&x.status||'').toLowerCase()==='paid'}
-function current(){
-  var view=document.getElementById('invoiceView');
-  if(!view)return null;
-  var n=view.querySelector('.invoice-meta b');
-  var number=n?(n.textContent||'').trim():'';
-  if(!number)return null;
-  return read().find(function(x){return String(x.number||'').toUpperCase()===number.toUpperCase()})||null;
+function current(){var view=document.getElementById('invoiceView');if(!view)return null;var n=view.querySelector('.invoice-meta b'),number=n?(n.textContent||'').trim():'';if(!number)return null;return read().find(function(x){return String(x.number||'').toUpperCase()===number.toUpperCase()})||null}
+function refresh(inv){var view=document.getElementById('invoiceView');if(!view||!inv)return;view.querySelectorAll('.invoice-status').forEach(function(s){s.textContent=inv.status||'Unpaid';s.setAttribute('aria-label',inv.status||'Unpaid')});var b=view.querySelector('#markPaidBtn');if(b){b.textContent=isPaid(inv)?'↩ Mark as Unpaid':'💰 Mark as Paid';b.disabled=false}if(typeof window.refreshTQBDashboard==='function')window.refreshTQBDashboard();if(typeof window.renderList==='function')window.renderList()}
+function toggle(e){var b=e.target&&e.target.closest?e.target.closest('#markPaidBtn'):null;if(!b)return;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();var inv=current();if(!inv)return;var list=read(),live=list.find(function(x){return String(x.id)===String(inv.id)||String(x.number)===String(inv.number)});if(!live)return;if(isPaid(live)){if(String(live.paidSource||'').toLowerCase()==='square'){alert('This invoice was paid through Square and cannot be changed back here.');return}if(!confirm('Mark '+(live.number||'this invoice')+' as unpaid?\n\nThe payment method and paid date will be cleared.'))return;live.status='Unpaid';delete live.paidAt;delete live.paidSource;delete live.paidMethod;delete live.paymentMethod;delete live.paymentDate}else{live.status='Paid';live.paidAt=Date.now();live.paidSource='manual';live.paidMethod='Other';live.paymentMethod='Other';live.paymentDate=new Date().toISOString().slice(0,10)}if(!save(list))return;refresh(live)}
+function launchEditor(){var old=document.querySelector('script[data-invoice-editor-loader]');if(old)try{old.remove()}catch(e){}var sc=document.createElement('script');sc.src='./invoice-edit.js?v=12&load='+Date.now();sc.dataset.invoiceEditorLoader='1';sc.onload=function(){setTimeout(function(){var b=document.getElementById('invoiceEditBtn');if(b&&typeof b._openEditor==='function')b._openEditor();else if(b) b.click()},100)};document.head.appendChild(sc)}
+function ensure(){var view=document.getElementById('invoiceView');if(!view)return;var box=view.querySelector('.invoice-actions');if(!box){box=view.querySelector('.invoice-paper')||view;if(!box)return}
+var b=box.querySelector('#markPaidBtn');if(!b){b=document.createElement('button');b.type='button';b.id='markPaidBtn';b.className='primary';b.textContent='💰 Mark as Paid';var send=box.querySelector('#sendInvoiceBtn');if(send)send.insertAdjacentElement('afterend',b);else box.insertBefore(b,box.firstChild)}b.style.display='block';b.style.visibility='visible';b.style.pointerEvents='auto';b.style.cursor='pointer';b.style.opacity='1';b.textContent=isPaid(current())?'↩ Mark as Unpaid':'💰 Mark as Paid';
+var e=box.querySelector('#invoiceEditBtn');if(!e){e=document.createElement('button');e.type='button';e.id='invoiceEditBtn';e.className='secondary';e.textContent='✏️ Edit Invoice';e.style.cssText='background:#eef0f4;color:#172033;border:0;border-radius:12px;min-height:52px;font-size:15px;font-weight:800;width:100%;cursor:pointer;display:block;visibility:visible;pointer-events:auto;opacity:1;margin-top:10px';box.appendChild(e)}if(!e.dataset.bound){e.dataset.bound='1';e._openEditor=function(){launchEditor()};e.onclick=function(ev){ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation();launchEditor()}}
 }
-function refresh(inv){
-  var view=document.getElementById('invoiceView');
-  if(!view||!inv)return;
-  view.querySelectorAll('.invoice-status').forEach(function(s){
-    s.textContent=inv.status||'Unpaid';
-    s.setAttribute('aria-label',inv.status||'Unpaid');
-  });
-  var b=view.querySelector('#markPaidBtn');
-  if(b){b.textContent=isPaid(inv)?'↩ Mark as Unpaid':'💰 Mark as Paid';b.disabled=false}
-  if(typeof window.refreshTQBDashboard==='function')window.refreshTQBDashboard();
-  if(typeof window.renderList==='function')window.renderList();
-}
-function toggle(e){
-  var b=e.target&&e.target.closest?e.target.closest('#markPaidBtn'):null;
-  if(!b)return;
-  e.preventDefault();
-  e.stopPropagation();
-  e.stopImmediatePropagation();
-  var inv=current();
-  if(!inv)return;
-  var list=read(),live=list.find(function(x){return String(x.id)===String(inv.id)||String(x.number)===String(inv.number)});
-  if(!live)return;
-  if(isPaid(live)){
-    if(String(live.paidSource||'').toLowerCase()==='square'){
-      alert('This invoice was paid through Square and cannot be changed back here.');
-      return;
-    }
-    if(!confirm('Mark '+(live.number||'this invoice')+' as unpaid?\n\nThe payment method and paid date will be cleared.'))return;
-    live.status='Unpaid';
-    delete live.paidAt;delete live.paidSource;delete live.paidMethod;delete live.paymentMethod;delete live.paymentDate;
-  }else{
-    live.status='Paid';
-    live.paidAt=Date.now();
-    live.paidSource='manual';
-    live.paidMethod='Other';
-    live.paymentMethod='Other';
-    live.paymentDate=new Date().toISOString().slice(0,10);
-  }
-  if(!save(list))return;
-  refresh(live);
-}
-function ensure(){
-  var view=document.getElementById('invoiceView');
-  if(!view)return;
-  var box=view.querySelector('.invoice-actions');
-  if(!box)return;
-  var b=box.querySelector('#markPaidBtn');
-  if(!b){
-    b=document.createElement('button');
-    b.type='button';
-    b.id='markPaidBtn';
-    b.className='primary';
-    var send=box.querySelector('#sendInvoiceBtn');
-    if(send)send.insertAdjacentElement('afterend',b);else box.appendChild(b);
-  }
-  b.textContent=isPaid(current())?'↩ Mark as Unpaid':'💰 Mark as Paid';
-  b.disabled=false;
-  b.style.display='block';
-  b.style.visibility='visible';
-  b.style.pointerEvents='auto';
-  b.style.cursor='pointer';
-  b.style.opacity='1';
-}
-function start(){
-  document.addEventListener('click',toggle,true);
-  ensure();
-  new MutationObserver(ensure).observe(document.body,{childList:true,subtree:true});
-  setInterval(ensure,300);
-}
+function start(){document.addEventListener('click',toggle,true);ensure();new MutationObserver(ensure).observe(document.body,{childList:true,subtree:true});setInterval(ensure,300)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();
